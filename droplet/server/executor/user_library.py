@@ -72,7 +72,7 @@ class DropletUserLibrary(AbstractDropletUserLibrary):
 
     def put(self, ref, value):
         # return self.anna_client.put(ref, serializer.dump_lattice(value))
-        return self.causal_put(ref, value)
+        return self.causal_put(ref, value, {})
 
     def causal_put(self, ref, value, deps):
         data = SetLattice({self.dump(value)})
