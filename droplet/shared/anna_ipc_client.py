@@ -122,6 +122,7 @@ class AnnaIpcClient(BaseAnnaClient):
         # valid response for that key.
         kv_pairs = {}
         for key in keys:
+            print('getting key %s' % key)
             logging.info('getting key %s' % key)
             kv_pairs[key] = None
 
@@ -130,7 +131,7 @@ class AnnaIpcClient(BaseAnnaClient):
         except zmq.ZMQError as e:
             logging.error("Unexpected error while requesting keys %s: %s." %
                           (str(keys), str(e)))
-
+            print('unexpected error')
             return ((None, None), kv_pairs)
         else:
             kv_pairs = {}
@@ -139,6 +140,7 @@ class AnnaIpcClient(BaseAnnaClient):
 
             for tp in resp.tuples:
                 if tp.error == KEY_DNE:
+                    print('key DNE')
                     return (None, kv_pairs)
 
                 val = self._deserialize(tp)
