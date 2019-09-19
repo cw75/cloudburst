@@ -76,13 +76,18 @@ class DropletUserLibrary(AbstractDropletUserLibrary):
 
     def causal_put(self, ref, value, deps):
         data = SetLattice({self.dump(value)})
-        mkc_value = MultiKeyCausalLattice(
+        mkc_value = MultiKeyCausalLattice(  
             VectorClock({self.client_id: MaxIntLattice(1)}),
             MapLattice(deps),
             data,
         )
         return self.anna_client.causal_put(
             ref, mkc_value, client_id)
+
+    def causal_get(self, ref):
+        versions, results = self.anna_client.causal_get(
+            ref, client_id=self.client_id)
+        return results[ref]  # (vc, value) or None  
 
     def get(self, ref):
         res = self.causal_get(ref)
@@ -110,10 +115,6 @@ class DropletUserLibrary(AbstractDropletUserLibrary):
         # else:
         #     return result[ref]
 
-    def casual_get(self, ref):
-        versions, results = self.anna_client.causal_get(
-            ref, client_id=self.client_id)
-        return results[ref]  # (vc, value) or None
 
 
     def getid(self):
