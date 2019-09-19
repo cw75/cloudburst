@@ -28,14 +28,8 @@ def retrieve_function(name, kvs, consistency=NORMAL):
 
     # This means that the function is stored in an SingleKeyCausalLattice.
     _, result = kvs.causal_get([kvs_name])
-    lattice = result[kvs_name]
-
-    if lattice:
-        # If there are multiple concurrent values, we arbitrarily pick the
-        # first one listed.
-        result = serializer.load_lattice(lattice)[0]
-    else:
-        return None
+    serialized = result[kvs_name][1]
+    result = serializer.load(serialized)
 
     # Check to see if the result is a tuple. This means that the first object
     # in the tuple is a class that we can initialize, and the second value is a
