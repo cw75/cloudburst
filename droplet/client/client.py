@@ -25,8 +25,7 @@ from droplet.shared.proto.droplet_pb2 import (
     Function,
     FunctionCall,
     GenericResponse,
-    NORMAL,  # Droplet consistency modes
-    MULTI,  # Droplet consistency modes
+    NORMAL  # Droplet consistency modes
 )
 from droplet.shared.proto.shared_pb2 import StringSet
 from droplet.shared.serializer import Serializer
@@ -267,6 +266,7 @@ class DropletConnection():
         call = FunctionCall()
         call.name = name
         call.request_id = self.rid
+        call.consistency = MULTI
 
         for arg in args:
             argobj = call.arguments.values.add()

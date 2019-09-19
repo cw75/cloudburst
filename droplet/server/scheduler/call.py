@@ -34,6 +34,7 @@ def call_function(func_call_socket, pusher_cache, policy):
     # Parse the received protobuf for this function call.
     call = FunctionCall()
     call.ParseFromString(func_call_socket.recv())
+    logging.info(str(call))
 
     # If there is no response key set for this request, we generate a random
     # UUID.

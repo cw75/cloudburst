@@ -42,6 +42,7 @@ def exec_function(exec_socket, kvs, user_library, cache):
     logging.info('enter exec function')
     call = FunctionCall()
     call.ParseFromString(exec_socket.recv())
+    logging.info(str(call))
 
     fargs = [serializer.load(arg) for arg in call.arguments.values]
 
@@ -79,7 +80,7 @@ def exec_function(exec_socket, kvs, user_library, cache):
 
 
 def _exec_func_normal(kvs, func, args, user_lib, cache):
-    logging.info('enter func execution')
+    logging.info('enter normal func execution')
     refs = list(filter(lambda a: isinstance(a, DropletReference), args))
 
     if refs:
@@ -117,6 +118,7 @@ def _run_function(func, refs, args, user_lib):
 
 
 def _resolve_ref_normal(refs, kvs, cache):
+    logging.info('resolve ref normal')
     deserialize_map = {}
     kv_pairs = {}
     keys = set()
