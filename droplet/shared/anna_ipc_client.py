@@ -138,7 +138,6 @@ class AnnaIpcClient(BaseAnnaClient):
             #kv_pairs = {}
             resp = CausalResponse()
             resp.ParseFromString(msg)
-            logging.info()
             for tp in resp.tuples:
                 if tp.error == KEY_DNE:
                     logging.info('key DNE')
@@ -168,6 +167,7 @@ class AnnaIpcClient(BaseAnnaClient):
 
         request.response_address = self.put_response_address
         logging.info("put sending")
+        logging.info('request client id is %s' % request.id)
         self.put_request_socket.send(request.SerializeToString())
 
         try:
