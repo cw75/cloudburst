@@ -39,6 +39,7 @@ serializer = Serializer()
 
 
 def exec_function(exec_socket, kvs, user_library, cache):
+    logging.info('enter exec function')
     call = FunctionCall()
     call.ParseFromString(exec_socket.recv())
 
@@ -70,7 +71,7 @@ def exec_function(exec_socket, kvs, user_library, cache):
     else:
         result = serializer.dump_lattice(result, MultiKeyCausalLattice,
                                          causal_dependencies=dependencies)
-        succeed = kvs.causal_put(call.response_key, result)
+        succeed = kvs.causal_put(call.response_key, result, 'no client id')
 
     if not succeed:
         logging.info(f'Unsuccessful attempt to put key {call.response_key} '
@@ -78,6 +79,7 @@ def exec_function(exec_socket, kvs, user_library, cache):
 
 
 def _exec_func_normal(kvs, func, args, user_lib, cache):
+    logging.info('enter func execution')
     refs = list(filter(lambda a: isinstance(a, DropletReference), args))
 
     if refs:
@@ -88,6 +90,7 @@ def _exec_func_normal(kvs, func, args, user_lib, cache):
 
 def _exec_func_causal(kvs, func, args, user_lib, schedule=None,
                       key_version_locations={}, dependencies={}):
+    logging.info('enter causal func execution')
     refs = list(filter(lambda a: isinstance(a, DropletReference), args))
 
     if refs:
@@ -151,6 +154,7 @@ def _resolve_ref_normal(refs, kvs, cache):
 
 def _resolve_ref_causal(refs, kvs, schedule, key_version_locations,
                         dependencies):
+    logging.info('enter resolve ref causal')
     if schedule:
         future_read_set = _compute_children_read_set(schedule)
         client_id = schedule.client_id
@@ -189,7 +193,7 @@ def _resolve_ref_causal(refs, kvs, schedule, key_version_locations,
                     isinstance(kv_pairs[key], MultiKeyCausalLattice)):
                 # If there are multiple values, we choose the first one listed
                 # at random.
-                kv_pairs[key] = serializer.load_lattice(kv_pairs[key])[0]
+                kv_pairs[key] = serializer.load(kv_pairs[key][1])
             else:
                 raise ValueError(('Invalid lattice type %s encountered when' +
                                  ' executing in causal mode.') %

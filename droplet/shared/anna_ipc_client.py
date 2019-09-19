@@ -16,6 +16,7 @@ import logging
 
 from anna.base_client import BaseAnnaClient
 import zmq
+import random
 
 from droplet.shared.proto.anna_pb2 import (
     NONE,  # The undefined lattice type
@@ -121,6 +122,7 @@ class AnnaIpcClient(BaseAnnaClient):
         # valid response for that key.
         kv_pairs = {}
         for key in keys:
+            logging.info('getting key %s' % key)
             kv_pairs[key] = None
 
         try:
@@ -144,7 +146,7 @@ class AnnaIpcClient(BaseAnnaClient):
                 # We resolve multiple concurrent versions by randomly picking
                 # the first listed value.
                 kv_pairs[tp.key] = (val.vector_clock.reveal(),
-                                    val.values.reveal()[0])
+                                    random.sample(val.value.reveal(), 1)[0])
 
             if len(resp.key_versions) != 0:
                 return ((resp.key_version_query_address,
@@ -189,6 +191,7 @@ class AnnaIpcClient(BaseAnnaClient):
 
         request.response_address = self.put_response_address
         logging.info("causal put sending")
+        logging.info('putting key %s' % key)
         self.put_request_socket.send(request.SerializeToString())
 
         # If we get a response from the causal cache in this case, it is
