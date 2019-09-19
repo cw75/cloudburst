@@ -64,7 +64,7 @@ class DropletUserLibrary(AbstractDropletUserLibrary):
         self.address = sutils.BIND_ADDR_TEMPLATE % (sutils.RECV_INBOX_PORT +
                                                     self.executor_tid)
 
-        self.client_id = str(int(uuid.uuid4()))
+        self.client_id = 'shim_id'
 
         # Socket on which inbound messages, if any, will be received.
         self.recv_inbox_socket = context.socket(zmq.PULL)
