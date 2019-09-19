@@ -82,7 +82,7 @@ class DropletUserLibrary(AbstractDropletUserLibrary):
             data,
         )
         return self.anna_client.causal_put(
-            ref, mkc_value, client_id)
+            ref, mkc_value, self.client_id)
 
     def causal_get(self, ref):
         versions, results = self.anna_client.causal_get(

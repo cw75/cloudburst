@@ -135,12 +135,13 @@ class AnnaIpcClient(BaseAnnaClient):
             print('unexpected error')
             return ((None, None), kv_pairs)
         else:
-            kv_pairs = {}
+            #kv_pairs = {}
             resp = CausalResponse()
             resp.ParseFromString(msg)
-
+            logging.info()
             for tp in resp.tuples:
                 if tp.error == KEY_DNE:
+                    logging.info('key DNE')
                     print('key DNE')
                     return (None, kv_pairs)
 
