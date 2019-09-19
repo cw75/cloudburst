@@ -103,7 +103,7 @@ class AnnaIpcClient(BaseAnnaClient):
     def causal_get(self, keys, future_read_set=set(), key_version_locations={},
                    consistency=SINGLE, client_id=0):
         if type(keys) != list:
-            keys = list(keys)
+            keys = [keys]
 
         request, _ = self._prepare_causal_data_request(client_id, keys,
                                                        consistency)
