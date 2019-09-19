@@ -25,7 +25,8 @@ from droplet.shared.proto.droplet_pb2 import (
     Function,
     FunctionCall,
     GenericResponse,
-    NORMAL  # Droplet consistency modes
+    NORMAL,  # Droplet consistency modes
+    MULTI
 )
 from droplet.shared.proto.shared_pb2 import StringSet
 from droplet.shared.serializer import Serializer
