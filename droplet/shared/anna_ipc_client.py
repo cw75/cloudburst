@@ -101,7 +101,7 @@ class AnnaIpcClient(BaseAnnaClient):
             return kv_pairs
 
     def causal_get(self, keys, future_read_set=set(), key_version_locations={},
-                   consistency=SINGLE, client_id=0):
+                   consistency=SINGLE, client_id='id'):
         if type(keys) != list:
             keys = [keys]
 
@@ -116,6 +116,7 @@ class AnnaIpcClient(BaseAnnaClient):
         request.future_read_set.extend(future_read_set)
 
         logging.info("causal get sending")
+        logging.info('request client id is %s' % request.id)
         self.get_request_socket.send(request.SerializeToString())
 
         # Initialize all responses to None, and only change them if we have a
