@@ -167,7 +167,6 @@ class AnnaIpcClient(BaseAnnaClient):
 
         request.response_address = self.put_response_address
         logging.info("put sending")
-        logging.info('request client id is %s' % request.id)
         self.put_request_socket.send(request.SerializeToString())
 
         try:
@@ -195,6 +194,7 @@ class AnnaIpcClient(BaseAnnaClient):
 
         request.response_address = self.put_response_address
         logging.info("causal put sending")
+        logging.info('request client id is %s' % request.id)
         logging.info('putting key %s' % key)
         self.put_request_socket.send(request.SerializeToString())
 
