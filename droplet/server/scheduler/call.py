@@ -14,6 +14,7 @@
 
 import time
 import uuid
+import logging
 
 from droplet.server.scheduler import utils
 import droplet.server.utils as sutils
