@@ -583,7 +583,7 @@ def run(droplet_client, num_requests, sckt):
         for username in usernames:
             targets = get_n_zipf_users(max_degree)
             for i, target in enumerate(targets):
-                res = cfns['ccc_user_follow'](username, target).get()
+                res = cfns['ccc_user_follow'](username, target).get()[0]
                 if res != 'success':
                     logging.info("ccc_user_follow(%s, %s) -> %s" % (username, target, str(res)))
                     sys.exit(1)
