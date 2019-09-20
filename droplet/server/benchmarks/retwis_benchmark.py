@@ -631,7 +631,9 @@ def run(droplet_client, num_requests, sckt):
         if t < 0.8:
             r_start = time.time()
             if count_anomalies:
-                res, anomalies = cfns['ccc_user_timeline_anomalies'](username).get()
+                result = cfns['ccc_user_timeline_anomalies'](username).get()
+                print(result)
+                res, anomalies = result
                 anomaly_counts.append(len(anomalies))
                 tl_lengths.append(len(res))
             else:
