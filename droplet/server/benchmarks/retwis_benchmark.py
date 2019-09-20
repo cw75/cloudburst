@@ -546,7 +546,6 @@ def run(droplet_client, num_requests, sckt):
     # Does nothing if there are no tweets in the timeline to reply to!
     def post_random_reply(username):
         res = cfns['ccc_user_timeline'](username, 1).get()
-        res = pickle.loads(res)
         if len(res) == 0: return False
         parent_tweet_cid = res[-1][0]
         # logging.info(parent_tweet_cid)
