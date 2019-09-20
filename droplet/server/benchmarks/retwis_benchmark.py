@@ -631,11 +631,11 @@ def run(droplet_client, num_requests, sckt):
         if t < 0.8:
             r_start = time.time()
             if count_anomalies:
-                res, anomalies = pickle.loads(cfns['ccc_user_timeline_anomalies'](username).get())
+                res, anomalies = cfns['ccc_user_timeline_anomalies'](username).get()
                 anomaly_counts.append(len(anomalies))
                 tl_lengths.append(len(res))
             else:
-                res = pickle.loads(cfns['ccc_user_timeline'](username, 1).get())
+                res = cfns['ccc_user_timeline'](username, 1).get()
             rtimes.append(time.time() - r_start)
 
         # 20% writes.
