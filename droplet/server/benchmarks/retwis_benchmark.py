@@ -660,9 +660,9 @@ def run(droplet_client, num_requests, sckt):
 
 
     # Sanity check: print timeline of most and least popular user.
-    res = pickle.loads(cfns['ccc_user_timeline']('1', 1).get())
+    res = cfns['ccc_user_timeline']('1', 1).get()
     logging.info("ccc_user_timeline('1', 1) -> %s" % (str(res)))
-    res = pickle.loads(cfns['ccc_user_timeline'](str(num_users), 1).get())
+    res = cfns['ccc_user_timeline'](str(num_users), 1).get()
     logging.info("ccc_user_timeline(%s, 1) -> %s" % (str(num_users), str(res)))
 
     total_time = [0]
