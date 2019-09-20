@@ -103,7 +103,7 @@ class DropletUserLibrary(AbstractDropletUserLibrary):
     def get(self, ref):
         res = self.causal_get(ref)
         if res is None: return None
-        return res[1]
+        return res
         # if type(ref) != list:
         #     refs = [ref]
         # else:
