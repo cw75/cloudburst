@@ -508,7 +508,7 @@ def run(droplet_client, num_requests, sckt):
 
     # Experiment parameters.
     # ######################
-    count_anomalies = True
+    count_anomalies = False
     logging_rate = 1
     reply_frac = 0.2
     causal_mode = True
