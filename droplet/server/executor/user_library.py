@@ -20,6 +20,7 @@ from anna.lattices import (
     MultiKeyCausalLattice,
     SetLattice,
     VectorClock,
+    MaxIntLattice,
 )
 
 import droplet.server.utils as sutils
