@@ -50,7 +50,7 @@ def run(droplet_client, num_requests, sckt):
             value = self._droplet.get(key)
             logging.info(value)
             if value is None: return None
-            value = pickle.loads(value)
+            # value = pickle.loads(value)
             return value
         def causal_get(self, key):
             res = self._droplet.causal_get(key)
@@ -63,7 +63,7 @@ def run(droplet_client, num_requests, sckt):
                 return None, None
         # Storing arbitary values that can be retrieved by get().
         def set(self, key, value):
-            value = pickle.dumps(value)
+            # value = pickle.dumps(value)
             self._droplet.put(key, value)
         # Do a set with causal dependencies.
         # Dependencies is {'key': <vc>}
@@ -82,6 +82,7 @@ def run(droplet_client, num_requests, sckt):
         ## Set storage.
         # Add an item to the set at this key.
         def sadd(self, key, value):
+            logging.info(value)
             value = pickle.dumps(value)
             self._droplet.put(key, {value})
         # Remove an item from the set at this key.
@@ -114,11 +115,12 @@ def run(droplet_client, num_requests, sckt):
                 values = self._droplet.get(key)
                 logging.info(values)
                 oset = ListBasedOrderedSet(values)
-                values = [
-                    # trim off timestamp + delimiter, and deserialize the rest.
-                    pickle.loads(eval(item.decode()[17:]))
-                    for item in oset.lst[begin:end]
-                ]
+                logging.info(oset)
+                values = oset.lst[begin:end] 
+                #[
+                #    # trim off timestamp + delimiter, and deserialize the rest.
+                #    pickle.loads(eval(item)) for item in oset.lst[begin:end]
+                #]
                 return values
             else:
                 return []
@@ -162,6 +164,7 @@ def run(droplet_client, num_requests, sckt):
     class User(Model):
         @staticmethod
         def find_by_user(r, user):
+            logging.info("user:user:%s" % user)
             _id = r.get("user:user:%s" % user)
             if _id is not None:
                 return int(_id)
@@ -177,7 +180,7 @@ def run(droplet_client, num_requests, sckt):
         def create(r, user, password):
             # user_id = r.incr("user:uid")
             user_id = user # for idempotency :)))
-            r.get("user:user:%s" % user)
+
             if not r.get("user:user:%s" % user):
                 r.set("user:id:%s:user" % user_id, user)
                 r.set("user:user:%s" % user, user_id)
@@ -565,9 +568,10 @@ def run(droplet_client, num_requests, sckt):
         log_start = time.time()
         logging.info("Making %s users..." % num_users)
         for username in usernames:
-            res = cfns['ccc_user_create'](username).get()
+            res = cfns['ccc_user_create'](username).get()[0]
             if res != 'success':
                 logging.info("ccc_user_create(%s) -> %s" % (username, str(res)))
+                logging.info('Calling sys.exit: %s' % (res))
                 sys.exit(1)
             if time.time() - log_start > logging_rate:
                 logging.info("Currently making user %s." % username)
