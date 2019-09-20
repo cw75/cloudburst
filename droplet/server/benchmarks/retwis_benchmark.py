@@ -48,6 +48,7 @@ def run(droplet_client, num_requests, sckt):
         # Retrieving arbitrary values that were stored by set().
         def get(self, key):
             value = self._droplet.get(key)
+            logging.info(value)
             if value is None: return None
             value = pickle.loads(value)
             return value
@@ -68,7 +69,7 @@ def run(droplet_client, num_requests, sckt):
         # Dependencies is {'key': <vc>}
         def causal_set(self, key, value, dependencies):
             value = pickle.dumps(value)
-            self._droplet.causal_put(key, key, value, dependencies)
+            self._droplet.causal_put(key, value, dependencies)
 
         ## Counter storage.
         # incr in Redis is used for two things:
@@ -90,7 +91,7 @@ def run(droplet_client, num_requests, sckt):
         def smembers(self, key):
             values = self._droplet.get(key)
             if values is None: return set()
-            return set((pickle.loads(val) for val in values))
+            return set(values)
         # Set membership.
         def sismember(self, key):
             return key in self.smembers(key)
@@ -111,6 +112,7 @@ def run(droplet_client, num_requests, sckt):
         def lrange(self, key, begin, end):
             if self.exists(key):
                 values = self._droplet.get(key)
+                logging.info(values)
                 oset = ListBasedOrderedSet(values)
                 values = [
                     # trim off timestamp + delimiter, and deserialize the rest.

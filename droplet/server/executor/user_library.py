@@ -88,7 +88,17 @@ class DropletUserLibrary(AbstractDropletUserLibrary):
     def causal_get(self, ref):
         versions, results = self.anna_client.causal_get(
             ref, client_id=self.client_id)
-        return results[ref]  # (vc, value) or None  
+
+        if results[ref] is None:
+            return None
+
+        if type(results[ref]) == tuple:
+            if results[ref][1] == None:
+                return None
+
+            return serializer.load(results[ref][1])
+
+        return serializer.load(results[ref])  # (vc, value) or None  
 
     def get(self, ref):
         res = self.causal_get(ref)
