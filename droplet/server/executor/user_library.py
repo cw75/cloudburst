@@ -75,7 +75,7 @@ class DropletUserLibrary(AbstractDropletUserLibrary):
         return self.causal_put(ref, value, {})
 
     def causal_put(self, ref, value, deps):
-        data = SetLattice({self.dump(value)})
+        data = SetLattice({serializer.dump(value)})
         mkc_value = MultiKeyCausalLattice(  
             VectorClock({self.client_id: MaxIntLattice(1)}),
             MapLattice(deps),
