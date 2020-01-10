@@ -88,66 +88,17 @@ class DefaultDropletSchedulerPolicy(BaseDropletSchedulerPolicy):
         else:
             executors = set(self.unpinned_executors)
 
-        for executor in self.backoff:
-            executors.discard(executor)
-
-        # Generate a list of all the keys in the system; if any of these nodes
-        # have received many requests, we remove them from the executor set
-        # with high probability.
-        for key in self.running_counts:
-            if (len(self.running_counts[key]) > 1000 and sys_random.random() >
-                    self.random_threshold):
-                executors.discard(key)
-
         if len(executors) == 0:
             return None
 
-        executor_ips = set([e[0] for e in executors])
-
-        # For each reference, we look at all the places where they are cached,
-        # and we calculate which IP address has the most references cached.
-        for reference in references:
-            if reference.key in self.key_locations:
-                ips = self.key_locations[reference.key]
-
-                for ip in ips:
-                    # Only choose this cached node if its a valid executor for
-                    # our purposes.
-                    if ip in executor_ips:
-                        if ip not in arg_map:
-                            arg_map[ip] = 0
-
-                        arg_map[ip] += 1
-
-        # Get the IP address that has the maximum value in the arg_map, if
-        # there are any values.
-        max_ip = None
-        if arg_map:
-            max_ip = max(arg_map, key=arg_map.get)
-
-        # Pick a random thead from our potential executors that is on that IP
-        # address with the most keys cached.
-        if max_ip:
-            candidates = list(filter(lambda e: e[0] == max_ip, executors))
-            max_ip = sys_random.choice(candidates)
-
-        # If max_ip was never set (i.e. there were no references cached
-        # anywhere), or with some random chance, we assign this node to a
-        # random executor.
-        if not max_ip or sys_random.random() < self.random_threshold:
-            max_ip = sys_random.sample(executors, 1)[0]
-
-        if max_ip not in self.running_counts:
-            self.running_counts[max_ip] = set()
-
-        self.running_counts[max_ip].add(time.time())
+        target_ip = sys_random.sample(executors, 1)[0]
 
         # Remove this IP/tid pair from the system's metadata until it notifies
         # us that it is available again, but only do this for non-DAG requests.
         if not function_name:
-            self.unpinned_executors.discard(max_ip)
+            self.unpinned_executors.discard(target_ip)
 
-        return max_ip
+        return target_ip
 
     def pin_function(self, dag_name, function_name):
         # If there are no functions left to choose from, then we return None,
