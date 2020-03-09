@@ -149,12 +149,16 @@ def scheduler(ip, mgmt_ip, route_addr):
         socks = dict(poller.poll(timeout=1000))
 
         if connect_socket in socks and socks[connect_socket] == zmq.POLLIN:
+            logging.info('received connection request')
             msg = connect_socket.recv_string()
             connect_socket.send_string(route_addr)
+            logging.info('finish connection request')
 
         if (func_create_socket in socks and
                 socks[func_create_socket] == zmq.POLLIN):
+            logging.info('received function creation request')
             create_function(func_create_socket, kvs)
+            logging.info('finish function creation request')
 
         if func_call_socket in socks and socks[func_call_socket] == zmq.POLLIN:
             call_function(func_call_socket, pusher_cache, policy)
