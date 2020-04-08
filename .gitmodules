@@ -3,5 +3,3 @@
 	path = common
 	url = https://github.com/Debbieliang9/common
 	branch = TopK
-[submodule "Submod"]
-	url = https://github.com/Debbieliang9/common.git
