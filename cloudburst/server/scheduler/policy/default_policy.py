@@ -18,13 +18,12 @@ import time
 
 import zmq
 
-from cloudburst.shared.proto.cloudburst_pb2 import GenericResponse
-from cloudburst.shared.proto.internal_pb2 import PinFunction
-from cloudburst.shared.proto.shared_pb2 import StringSet
-from cloudburst.server.scheduler.policy.base_policy import (
-    BaseCloudburstSchedulerPolicy
+from droplet.shared.proto.droplet_pb2 import GenericResponse
+from droplet.shared.proto.shared_pb2 import StringSet
+from droplet.server.scheduler.policy.base_policy import (
+    BaseDropletSchedulerPolicy
 )
-from cloudburst.server.scheduler.utils import (
+from droplet.server.scheduler.utils import (
     get_cache_ip_key,
     get_pin_address,
     get_unpin_address
@@ -33,10 +32,10 @@ from cloudburst.server.scheduler.utils import (
 sys_random = random.SystemRandom()
 
 
-class DefaultCloudburstSchedulerPolicy(BaseCloudburstSchedulerPolicy):
+class DefaultDropletSchedulerPolicy(BaseDropletSchedulerPolicy):
 
     def __init__(self, pin_accept_socket, pusher_cache, kvs_client, ip,
-                 random_threshold=0.20, local=False):
+                 random_threshold=0.20):
         # This scheduler's IP address.
         self.ip = ip
 
@@ -78,16 +77,6 @@ class DefaultCloudburstSchedulerPolicy(BaseCloudburstSchedulerPolicy):
         # rather than by policy.
         self.random_threshold = random_threshold
 
-        self.unique_executors = set()
-
-        # Indicates if we are running in local mode
-        self.local = local
-
-    def get_unique_executors(self):
-        count = len(self.unique_executors)
-        self.unique_executors = set()
-        return count
-
     def pick_executor(self, references, function_name=None):
         # Construct a map which maps from IP addresses to the number of
         # relevant arguments they have cached. For the time begin, we will
@@ -99,69 +88,19 @@ class DefaultCloudburstSchedulerPolicy(BaseCloudburstSchedulerPolicy):
         else:
             executors = set(self.unpinned_executors)
 
-        for executor in self.backoff:
-            executors.discard(executor)
-
-        # Generate a list of all the keys in the system; if any of these nodes
-        # have received many requests, we remove them from the executor set
-        # with high probability.
-        for key in self.running_counts:
-            if (len(self.running_counts[key]) > 1000 and sys_random.random() >
-                    self.random_threshold):
-                executors.discard(key)
-
         if len(executors) == 0:
             return None
 
-        executor_ips = set([e[0] for e in executors])
-
-        # For each reference, we look at all the places where they are cached,
-        # and we calculate which IP address has the most references cached.
-        for reference in references:
-            if reference.key in self.key_locations:
-                ips = self.key_locations[reference.key]
-
-                for ip in ips:
-                    # Only choose this cached node if its a valid executor for
-                    # our purposes.
-                    if ip in executor_ips:
-                        if ip not in arg_map:
-                            arg_map[ip] = 0
-
-                        arg_map[ip] += 1
-
-        # Get the IP address that has the maximum value in the arg_map, if
-        # there are any values.
-        max_ip = None
-        if arg_map:
-            max_ip = max(arg_map, key=arg_map.get)
-
-        # Pick a random thead from our potential executors that is on that IP
-        # address with the most keys cached.
-        if max_ip:
-            candidates = list(filter(lambda e: e[0] == max_ip, executors))
-            max_ip = sys_random.choice(candidates)
-
-        # If max_ip was never set (i.e. there were no references cached
-        # anywhere), or with some random chance, we assign this node to a
-        # random executor.
-        if not max_ip or sys_random.random() < self.random_threshold:
-            max_ip = sys_random.sample(executors, 1)[0]
-
-        if max_ip not in self.running_counts:
-            self.running_counts[max_ip] = set()
-
-        self.running_counts[max_ip].add(time.time())
+        target_ip = sys_random.sample(executors, 1)[0]
 
         # Remove this IP/tid pair from the system's metadata until it notifies
         # us that it is available again, but only do this for non-DAG requests.
-        if not self.local and not function_name:
-            self.unpinned_executors.discard(max_ip)
+        if not function_name:
+            self.unpinned_executors.discard(target_ip)
 
-        self.unique_executors.add(max_ip)
-        return max_ip
+        return target_ip
 
-    def pin_function(self, dag_name, function_ref):
+    def pin_function(self, dag_name, function_name):
         # If there are no functions left to choose from, then we return None,
         # indicating that we ran out of resources to use.
         if len(self.unpinned_executors) == 0:
@@ -174,20 +113,14 @@ class DefaultCloudburstSchedulerPolicy(BaseCloudburstSchedulerPolicy):
         # system's metadata.
         candidates = set(self.unpinned_executors)
 
-        # Construct a PinFunction message to be sent to executors.
-        pin_msg = PinFunction()
-        pin_msg.name = function_ref.name
-        pin_msg.response_address = self.ip
-
-        serialized = pin_msg.SerializeToString()
-
         while True:
             # Pick a random executor from the set of candidates and attempt to
             # pin this function there.
             node, tid = sys_random.sample(candidates, 1)[0]
 
             sckt = self.pusher_cache.get(get_pin_address(node, tid))
-            sckt.send(serialized)
+            msg = self.ip + ':' + function_name
+            sckt.send_string(msg)
 
             response = GenericResponse()
             try:
@@ -200,21 +133,19 @@ class DefaultCloudburstSchedulerPolicy(BaseCloudburstSchedulerPolicy):
             # Do not use this executor either way: If it rejected, it has
             # something else pinned, and if it accepted, it has pinned what we
             # just asked it to pin.
-            # In local model allow executors to have multiple functions pinned
-            if not self.local:
-                self.unpinned_executors.discard((node, tid))
-                candidates.discard((node, tid))
+            self.unpinned_executors.discard((node, tid))
+            candidates.discard((node, tid))
 
             if response.success:
                 # The pin operation succeeded, so we return the node and thread
                 # ID to the caller.
-                self.pending_dags[dag_name].append((function_ref.name, (node,
-                                                                        tid)))
+                self.pending_dags[dag_name].append((function_name, (node,
+                                                                    tid)))
                 return True
             else:
                 # The pin operation was rejected, remove node and try again.
                 logging.error('Node %s:%d rejected pin for %s. Retrying.'
-                              % (node, tid, function_ref.name))
+                              % (node, tid, function_name))
 
                 continue
 
@@ -238,9 +169,9 @@ class DefaultCloudburstSchedulerPolicy(BaseCloudburstSchedulerPolicy):
         else:
             # If the DAG was not pinned, we construct a set of all the
             # locations where functions were pinned for this DAG.
-            for function_ref in dag.functions:
-                for location in self.function_locations[function_ref.name]:
-                    pinned_locations.append((function_ref.name, location))
+            for function_name in dag.functions:
+                for location in self.function_locations[function_name]:
+                    pinned_locations.append((function_name, location))
 
         # For each location, we fire-and-forget an unpin message.
         for function_name, location in pinned_locations:
@@ -286,16 +217,8 @@ class DefaultCloudburstSchedulerPolicy(BaseCloudburstSchedulerPolicy):
 
         # If the executor thread is overutilized, we add it to the backoff set
         # and ignore it for a period of time.
-        if status.utilization > 0.70 and not self.local:
-            not_lone_executor = []
-            for function_name in status.functions:
-                if len(self.function_locations[function_name]) > 1:
-                    not_lone_executor.append(True)
-                else:
-                    not_lone_executor.append(False)
-
-            if all(not_lone_executor):
-                self.backoff[key] = time.time()
+        if status.utilization > 0.70:
+            self.backoff[key] = time.time()
 
     def update(self):
         # Periodically clean up the running counts map to drop any times older
