@@ -316,7 +316,7 @@ def executor(ip, mgmt_ip, schedulers, thread_id):
             status.running = False
             utils.push_status(schedulers, pusher_cache, status)
 
-            #departing = True
+            departing = True
 
         # periodically report function occupancy
         report_end = time.time()
@@ -397,11 +397,17 @@ def executor(ip, mgmt_ip, schedulers, thread_id):
             # If we are departing and have cleared our queues, let the
             # management server know, and exit the process.
             if departing and len(queue) == 0:
+                logging.info('send depart done to management')
+                print('send depart done to management')
                 sckt = pusher_cache.get(utils.get_depart_done_addr(mgmt_ip))
                 sckt.send_string(ip)
+                logging.info('send done')
+                print('send done')
 
                 # We specifically pass 1 as the exit code when ending our
                 # process so that the wrapper script does not restart us.
+                while True:
+                    a = 1
                 os._exit(1)
 
 
