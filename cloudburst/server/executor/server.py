@@ -316,7 +316,7 @@ def executor(ip, mgmt_ip, schedulers, thread_id):
             status.running = False
             utils.push_status(schedulers, pusher_cache, status)
 
-            departing = True
+            #departing = True
 
         # periodically report function occupancy
         report_end = time.time()
