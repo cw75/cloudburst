@@ -406,9 +406,9 @@ def executor(ip, mgmt_ip, schedulers, thread_id):
 
                 # We specifically pass 1 as the exit code when ending our
                 # process so that the wrapper script does not restart us.
-                while True:
-                    a = 1
-                os._exit(1)
+                # while True:
+                #     a = 1
+                sys.exit(1)
 
 
 if __name__ == '__main__':
