@@ -297,10 +297,17 @@ def executor(ip, mgmt_ip, schedulers, thread_id):
 
         if self_depart_socket in socks and socks[self_depart_socket] == \
                 zmq.POLLIN:
+            logging.info('received depart msg')
+            print('received depart msg')
             # This message does not matter.
             self_depart_socket.recv()
 
+            logging.info('finish parsing')
+            print('finish parsing')
+
             logging.info('Preparing to depart. No longer accepting requests ' +
+                         'and clearing all queues.')
+            print('Preparing to depart. No longer accepting requests ' +
                          'and clearing all queues.')
 
             status.ClearField('functions')
