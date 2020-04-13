@@ -297,9 +297,9 @@ def executor(ip, mgmt_ip, schedulers, thread_id):
 
         if self_depart_socket in socks and socks[self_depart_socket] == \
                 zmq.POLLIN:
-            # logging.info('received depart msg')
-            # print('received depart msg')
-            # # This message does not matter.
+            logging.info('received depart msg')
+            print('received depart msg')
+            # This message does not matter.
             # self_depart_socket.recv()
 
             # logging.info('finish parsing')
