@@ -300,7 +300,9 @@ def executor(ip, mgmt_ip, schedulers, thread_id):
             logging.info('received depart msg')
             print('received depart msg')
             # This message does not matter.
-            # self_depart_socket.recv()
+            msg = self_depart_socket.recv()
+            logging.info(msg)
+            print(msg)
 
             # logging.info('finish parsing')
             # print('finish parsing')
