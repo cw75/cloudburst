@@ -304,19 +304,19 @@ def executor(ip, mgmt_ip, schedulers, thread_id):
             logging.info(msg)
             print(msg)
 
-            # logging.info('finish parsing')
-            # print('finish parsing')
+            logging.info('finish parsing')
+            print('finish parsing')
 
-            # logging.info('Preparing to depart. No longer accepting requests ' +
-            #              'and clearing all queues.')
-            # print('Preparing to depart. No longer accepting requests ' +
-            #              'and clearing all queues.')
+            logging.info('Preparing to depart. No longer accepting requests ' +
+                         'and clearing all queues.')
+            print('Preparing to depart. No longer accepting requests ' +
+                         'and clearing all queues.')
 
-            # status.ClearField('functions')
-            # status.running = False
-            # utils.push_status(schedulers, pusher_cache, status)
+            status.ClearField('functions')
+            status.running = False
+            utils.push_status(schedulers, pusher_cache, status)
 
-            # departing = True
+            departing = True
 
         # periodically report function occupancy
         report_end = time.time()
