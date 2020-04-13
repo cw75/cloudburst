@@ -408,7 +408,7 @@ def executor(ip, mgmt_ip, schedulers, thread_id):
                 # process so that the wrapper script does not restart us.
                 # while True:
                 #     a = 1
-                sys.exit(1)
+                os._exit(1)
 
 
 if __name__ == '__main__':
