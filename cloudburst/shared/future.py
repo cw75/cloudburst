@@ -24,7 +24,7 @@ class CloudburstFuture():
         obj = self.kvs_client.get(self.obj_id)[self.obj_id]
 
         while obj is None:
-        	print(self.kvs_client.get(self.obj_id))
+        	print("99", self.kvs_client.get(self.obj_id, "00"))
         	obj = self.kvs_client.get(self.obj_id)[self.obj_id]
-
+        print("77", "obj", "88")
         return self.serializer.load_lattice(obj)

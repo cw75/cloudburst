@@ -136,7 +136,7 @@ class CloudburstConnection():
         self.func_create_sock.send(func.SerializeToString())
 
         resp = GenericResponse()
-        print("11", resp, "22")
+        # print("11", resp, "22")
         resp.ParseFromString(self.func_create_sock.recv())
 
         if resp.success:
