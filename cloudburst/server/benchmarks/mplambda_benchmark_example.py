@@ -2,7 +2,7 @@ import time
 import struct
 from cloudburst.client.client import cloudburstConnection
 # change this every time the cluster restarts
-dc = cloudburstConnection('a6e8c76a2429d4384bf790fda6c2afba-1294889553.us-east-1.elb.amazonaws.com', '75.101.215.70') # function_elb, driver_node_ip
+dc = cloudburstConnection('abb115d2b26474a59aa073738b61aa33-1258180098.us-east-1.elb.amazonaws.com', '75.101.215.70') # function_elb, driver_node_ip
 
 #PATH_RVF = 0xb11b0c45
 #PATH_RVD = PATH_RVF + 0x100
@@ -53,7 +53,7 @@ while run <=24:
 	solution_key = ('solution_key_' + str(run)) # deferentiate keys
 	future_list = []
 	for i in range(10): # parallely run. 10 is the number of function requests. TODO: spin up more nodes
-		future_list.append(cloud_func('ad9a1da34372611eab1bb0a3f434cb8e-973783503.us-east-1.elb.amazonaws.com', solution_key)) # routing_elb
+		future_list.append(cloud_func('a1576f057a72049129770d4d2a32ce8c-764018798.us-east-1.elb.amazonaws.com', solution_key)) # routing_elb
 	count = 1
 	for future in future_list:
 		print(count)
@@ -62,23 +62,23 @@ while run <=24:
 	start = time.time()
 	result = None
 	while result is None:
-		result = dc.kvs_client.get(solution_key)[solution_key]
+		result = dc.kvs_client.get(solution_key)[solution_key].payload.peekitem(0)
 		if time.time() - start > 60: # terminate after 60 sec 
 			break
 	if result is None:
 		print('no solution found')
 		continue
 	first = time.time()
-	output = '%s, %s' % (first-start, result.priority)
+	output = '%s, %s' % (first-start, result[0])
 	print(output)
 	f.write(output + '\n')
 	#print(result.priority)
 	while True:
-		new_result = dc.kvs_client.get(solution_key)[solution_key]
-		if not new_result is None and new_result.priority < result.priority: # priority is proportional to path length. the lower the better
+		new_result = dc.kvs_client.get(solution_key)[solution_key].payload.peekitem(0)
+		if not new_result is None and new_result[0] < result[0]: # priority is proportional to path length. the lower the better
 			# top K -> pick shortest 
 			result = new_result
-			output = '%s, %s' % (time.time()-start, result.priority)
+			output = '%s, %s' % (time.time()-start, result[0])
 			print(output)
 			f.write(output + '\n')
 			#print(result.priority)
@@ -89,6 +89,6 @@ while run <=24:
 	for future in future_list:
 		future.get()
 	print('printing waypoints')
-	print(deserializePath(result.value))
+	print(deserializePath(result[1]))
 f.close()
 
