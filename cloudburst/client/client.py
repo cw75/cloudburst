@@ -136,12 +136,11 @@ class CloudburstConnection():
         self.func_create_sock.send(func.SerializeToString())
 
         resp = GenericResponse()
-        # print("11", resp, "22")
         resp.ParseFromString(self.func_create_sock.recv())
 
         if resp.success:
             registered_functon = CloudburstFunction(name, self, self.kvs_client)
-            print("55", self.kvs_client, "in register 66")
+            # print("55", self.kvs_client, "in register 66")
             return registered_functon
         else:
             raise RuntimeError(f'Unexpected error while registering function: {resp}.')

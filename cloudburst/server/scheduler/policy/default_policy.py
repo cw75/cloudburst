@@ -89,6 +89,7 @@ class DefaultDropletSchedulerPolicy(BaseDropletSchedulerPolicy):
             executors = set(self.unpinned_executors)
 
         if len(executors) == 0:
+            logging.info('Executors length == 0!!!')
             return None
 
         target_ip = sys_random.sample(executors, 1)[0]
