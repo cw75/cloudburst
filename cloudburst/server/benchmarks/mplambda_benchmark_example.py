@@ -1,8 +1,9 @@
 import time
 import struct
-from cloudburst.client.client import cloudburstConnection
+import logging
+from cloudburst.client.client import CloudburstConnection
 # change this every time the cluster restarts
-dc = cloudburstConnection('abb115d2b26474a59aa073738b61aa33-1258180098.us-east-1.elb.amazonaws.com', '75.101.215.70') # function_elb, driver_node_ip
+dc = CloudburstConnection('a89ef184ab0df485fbd681b34b3aefed-2103808825.us-east-1.elb.amazonaws.com', '75.101.215.70') # function_elb, driver_node_ip
 
 #PATH_RVF = 0xb11b0c45
 #PATH_RVD = PATH_RVF + 0x100
@@ -34,8 +35,15 @@ def mpl_anna(cloudburst, anna_routing_address, execution_id): # function to regi
 	os.environ["PI_2"] = "1.570796326794897"
 
 	#execution_command = '/hydro/mplambda/build/mpl_lambda_pseudo --scenario se3 --algorithm cforest --coordinator "$COORDINATOR" --jobs 10 --env se3/Twistycool_env.dae --robot se3/Twistycool_robot.dae --start 0,1,0,0,270,160,-200 --goal 0,1,0,0,270,160,-400 --min 53.46,-21.25,-476.86 --max 402.96,269.25,-91.0 --time-limit 60 --check-resolution 0.1 --anna_address ' + anna_address + ' --local_ip ' + local_ip + ' --execution_id ' + execution_id + ' --thread_id ' + thread_id
-	execution_command = '/hydro/mplambda/build/mpl_lambda_pseudo --scenario fetch --algorithm cforest --coordinator "$COORDINATOR" --jobs 10 --env AUTOLAB.dae --env-frame=0.38,-0.90,0.00,0,0,-$PI_2 --goal=-1.07,0.16,0.88,0,0,0 --goal-radius=0.01,0.01,0.01,0.01,0.01,$PI --start=0.1,$PI_2,$PI_2,0,$PI_2,0,$PI_2,0 --time-limit 60 --check-resolution 0.01 --anna_address ' + anna_address + ' --local_ip ' + local_ip + ' --execution_id ' + execution_id + ' --thread_id ' + thread_id
+	execution_command = '/hydro/mplambda/build/mpl_lambda_pseudo --scenario fetch --algorithm cforest --coordinator "$COORDINATOR" --jobs 10 --env AUTOLAB.dae --env-frame=0.38,-0.90,0.00,0,0,-$PI_2 --goal=-1.07,0.16,0.88,0,0,0 --goal-radius=0.01,0.01,0.01,0.01,0.01,$PI --start=0.1,$PI_2,$PI_2,0,$PI_2,0,$PI_2,0 --time-limit 60 --check-resolution 0.01 --anna_address ' + anna_routing_address + ' --local_ip ' + local_ip + ' --execution_id ' + execution_id + ' --thread_id ' + thread_id
 	result = subprocess.run([execution_command], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True)
+
+	print("result", result, "111")
+	print("thread_id", thread_id, "222")
+
+	log.info("result" + result + "333333")
+	log.info("thread_id" + thread_id + "555555")
+
 	return result, thread_id
 
 cloud_func = dc.register(mpl_anna, 'mpl_anna')
@@ -52,9 +60,10 @@ while run <=24:
 	print('T' + str(run))
 	solution_key = ('solution_key_' + str(run)) # deferentiate keys
 	future_list = []
-	for i in range(10): # parallely run. 10 is the number of function requests. TODO: spin up more nodes
-		future_list.append(cloud_func('a1576f057a72049129770d4d2a32ce8c-764018798.us-east-1.elb.amazonaws.com', solution_key)) # routing_elb
+	for i in range(2): # parallely run. 10 is the number of function requests. TODO: spin up more nodes
+		future_list.append(cloud_func('a50a37442cf6f4cdcbbb5734ab84be45-384073351.us-east-1.elb.amazonaws.com', solution_key)) # routing_elb
 	count = 1
+	print("[[",future_list,"]]")
 	for future in future_list:
 		print(count)
 		count += 1
@@ -62,7 +71,10 @@ while run <=24:
 	start = time.time()
 	result = None
 	while result is None:
-		result = dc.kvs_client.get(solution_key)[solution_key].payload.peekitem(0)
+		# print("dc.kvs_client", dc.kvs_client, "||")
+		print("++", dc.kvs_client.get(solution_key), "--")
+		if dc.kvs_client.get(solution_key)[solution_key] is not None: 
+			result = dc.kvs_client.get(solution_key)[solution_key].payload.peekitem(0)
 		if time.time() - start > 60: # terminate after 60 sec 
 			break
 	if result is None:
