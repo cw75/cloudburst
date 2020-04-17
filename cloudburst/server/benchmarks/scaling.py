@@ -35,6 +35,7 @@ def run(cloudburst_client, num_requests, sckt, create):
         cloud_sleep = cloudburst_client.register(slp, 'sleep')
 
         if cloud_sleep:
+            logging.info('Successfully registered sleep function.')
             print('Successfully registered sleep function.')
         else:
             sys.exit(1)
@@ -42,8 +43,10 @@ def run(cloudburst_client, num_requests, sckt, create):
         ''' TEST REGISTERED FUNCTIONS '''
         sleep_test = cloud_sleep(2).get()
         if sleep_test != 2:
+            logging.info('Unexpected result from sleep(2): %s' % (str(sleep_test)))
             print('Unexpected result from sleep(2): %s' % (str(sleep_test)))
             sys.exit(1)
+        logging.info('Successfully tested functions!')
         print('Successfully tested functions!')
 
         ''' CREATE DAG '''
@@ -51,6 +54,7 @@ def run(cloudburst_client, num_requests, sckt, create):
         success, error = cloudburst_client.register_dag(dag_name, functions, [])
 
         if not success:
+            logging.info('Failed to register DAG: %s' % (CloudburstError.Name(error)))
             print('Failed to register DAG: %s' % (CloudburstError.Name(error)))
             sys.exit(1)
 
