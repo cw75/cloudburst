@@ -148,6 +148,8 @@ def executor(ip, mgmt_ip, schedulers, thread_id):
         socks = dict(poller.poll(timeout=1000))
 
         if pin_socket in socks and socks[pin_socket] == zmq.POLLIN:
+            logging.info('received pin request')
+            print('received pin request')
             work_start = time.time()
             pin(pin_socket, pusher_cache, client, status, function_cache,
                 runtimes, exec_counts, user_library, local)
@@ -156,6 +158,8 @@ def executor(ip, mgmt_ip, schedulers, thread_id):
             elapsed = time.time() - work_start
             event_occupancy['pin'] += elapsed
             total_occupancy += elapsed
+            logging.info('finished pin request')
+            print('finished pin request')
 
         if unpin_socket in socks and socks[unpin_socket] == zmq.POLLIN:
             work_start = time.time()
