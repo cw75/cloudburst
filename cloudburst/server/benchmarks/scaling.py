@@ -76,9 +76,8 @@ def run(cloudburst_client, num_requests, sckt, create):
 
             if res is not None:
                 epoch_req_count += 1
-
-            total_time += [end - start]
-            epoch_latencies += [end - start]
+                total_time += [end - start]
+                epoch_latencies += [end - start]
 
             epoch_end = time.time()
             if epoch_end - epoch_start > 10:
