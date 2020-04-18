@@ -236,21 +236,23 @@ class CloudburstConnection():
         r = GenericResponse()
         r.ParseFromString(self.dag_call_sock.recv())
 
-        if direct_response:
-            try:
-                result = self.response_sock.recv()
-                return serializer.load(result)
-            except zmq.ZMQError as e:
-                if e.errno == zmq.EAGAIN:
-                    return None
-                else:
-                    raise e
-        else:
-            if r.success:
+        if r.success:
+            if direct_response:
+                try:
+                    result = self.response_sock.recv()
+                    return serializer.load(result)
+                except zmq.ZMQError as e:
+                    if e.errno == zmq.EAGAIN:
+                        logging.error('timed out')
+                        return None
+                    else:
+                        raise e
+            else:
                 return CloudburstFuture(r.response_id, self.kvs_client,
                                      serializer)
-            else:
-                return None
+        else:
+            logging.error('scheduling failed')
+            return None
 
     def delete_dag(self, dname):
         '''
