@@ -60,7 +60,7 @@ class CloudburstConnection():
         self.context = zmq.Context(1)
 
         kvs_addr = self._connect()
-        if not kvs_addr:
+        while not kvs_addr:
             logging.info('connection timed out, retrying')
             kvs_addr = self._connect()
 
