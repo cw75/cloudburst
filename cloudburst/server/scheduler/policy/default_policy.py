@@ -111,6 +111,7 @@ class DefaultCloudburstSchedulerPolicy(BaseCloudburstSchedulerPolicy):
         #        executors.discard(key)
 
         if len(executors) == 0:
+            logging.info('length of executors is 0!')
             return None
 
         executor_ips = set([e[0] for e in executors])
@@ -159,6 +160,10 @@ class DefaultCloudburstSchedulerPolicy(BaseCloudburstSchedulerPolicy):
             self.unpinned_executors.discard(max_ip)
 
         self.unique_executors.add(max_ip)
+
+        if not max_ip:
+            logging.info('returning None!')
+
         return max_ip
 
     def pin_function(self, dag_name, function_ref):
@@ -257,6 +262,7 @@ class DefaultCloudburstSchedulerPolicy(BaseCloudburstSchedulerPolicy):
         # This means that this node is currently departing, so we remove it
         # from all of our metadata tracking.
         if not status.running:
+            logging.info('executor not in running status')
             if key in self.thread_statuses:
                 for fname in self.thread_statuses[key].functions:
                     self.function_locations[fname].discard(key)
