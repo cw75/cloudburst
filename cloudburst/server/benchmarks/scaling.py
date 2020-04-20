@@ -86,8 +86,11 @@ def run(cloudburst_client, num_requests, sckt, create):
 
                 logging.info('EPOCH %d THROUGHPUT: %.2f' %
                              (epoch, (epoch_req_count / 10)))
-                utils.print_latency_stats(epoch_latencies,
-                                          'EPOCH %d E2E' % epoch, True)
+                if len(epoch_latencies) > 0:
+                    utils.print_latency_stats(epoch_latencies,
+                                              'EPOCH %d E2E' % epoch, True)
+                else:
+                    logging.info('No data to print for this epoch')
                 epoch += 1
 
                 epoch_req_count = 0
