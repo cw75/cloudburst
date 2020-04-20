@@ -233,8 +233,8 @@ def scheduler(ip, mgmt_ip, route_addr):
                     dags[dag.name] = (dag, sched_utils.find_dag_source(dag))
 
                     for fname in dag.functions:
-                        if fname not in call_frequency:
-                            call_frequency[fname] = 0
+                        if fname.name not in call_frequency:
+                            call_frequency[fname.name] = 0
 
             policy.update_function_locations(status.function_locations)
 
