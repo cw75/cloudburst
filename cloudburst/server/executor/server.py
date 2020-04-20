@@ -217,6 +217,11 @@ def executor(ip, mgmt_ip, schedulers, thread_id):
 
                 triggers = list(received_triggers[key].values())
 
+                if fname not in function_cache:
+                    logging.error('fname not in function cache, entering loop...')
+                    while True:
+                        pass
+
                 success = exec_dag_function(pusher_cache, client,
                                             triggers, function_cache[fname],
                                             schedule, user_library,
@@ -276,6 +281,11 @@ def executor(ip, mgmt_ip, schedulers, thread_id):
                         triggers = [trigger]
                     else:
                         triggers = list(received_triggers[key].values())
+
+                    if fname not in function_cache:
+                        logging.error('fname not in function cache, entering loop...')
+                        while True:
+                            pass
 
                     success = exec_dag_function(pusher_cache, client,
                                                 triggers,
