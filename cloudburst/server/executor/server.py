@@ -215,7 +215,7 @@ def executor(ip, mgmt_ip, schedulers, thread_id):
                     ((len(received_triggers[trkey]) == len(schedule.triggers)) \
                     or (fref.type == MULTIEXEC))):
 
-                triggers = list(received_triggers[key].values())
+                triggers = list(received_triggers[trkey].values())
 
                 if fname not in function_cache:
                     logging.error('fname not in function cache, entering loop...')
