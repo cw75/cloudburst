@@ -254,6 +254,7 @@ def scheduler(ip, mgmt_ip, route_addr):
             # schedulers.
             if mgmt_ip:
                 schedulers = sched_utils.get_ip_set(management_request_socket, False)
+                logging.info('schedulers are %s', schedulers)
 
         if end - start > REPORT_THRESHOLD:
             num_unique_executors = policy.get_unique_executors()
