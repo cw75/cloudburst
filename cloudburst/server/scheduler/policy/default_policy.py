@@ -353,4 +353,3 @@ class DefaultCloudburstSchedulerPolicy(BaseCloudburstSchedulerPolicy):
 
             key = (location.ip, location.tid)
             self.function_locations[function_name].add(key)
-© 2020 GitHub, Inc.
