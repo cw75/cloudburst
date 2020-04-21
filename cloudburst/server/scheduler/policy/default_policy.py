@@ -159,7 +159,7 @@ class DefaultCloudburstSchedulerPolicy(BaseCloudburstSchedulerPolicy):
         if not self.local and not function_name:
             self.unpinned_executors.discard(target_ip) # self.unpinned_executors.discard(max_ip)
 
-        self.unique_executors.add(max_ip)
+        # self.unique_executors.add(max_ip)
         # return max_ip
         return target_ip
 
