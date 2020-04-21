@@ -3,7 +3,7 @@ import struct
 import logging
 from cloudburst.client.client import CloudburstConnection
 # change this every time the cluster restarts
-dc = CloudburstConnection('a89ef184ab0df485fbd681b34b3aefed-2103808825.us-east-1.elb.amazonaws.com', '75.101.215.70') # function_elb, driver_node_ip
+dc = CloudburstConnection('a745ff89e3f21440ca8cf5a920036179-1240797621.us-east-1.elb.amazonaws.com', '75.101.215.70') # function_elb, driver_node_ip
 
 #PATH_RVF = 0xb11b0c45
 #PATH_RVD = PATH_RVF + 0x100
@@ -53,7 +53,7 @@ f = open("result.txt", "w")
 
 run = 0
 # run the same experiment 24 times and take average
-while run <=24:
+while run <=1:
 	time.sleep(1)
 	run += 1
 	f.write('T' + str(run) + '\n')
@@ -61,7 +61,7 @@ while run <=24:
 	solution_key = ('solution_key_' + str(run)) # deferentiate keys
 	future_list = []
 	for i in range(2): # parallely run. 10 is the number of function requests. TODO: spin up more nodes
-		future_list.append(cloud_func('a50a37442cf6f4cdcbbb5734ab84be45-384073351.us-east-1.elb.amazonaws.com', solution_key)) # routing_elb
+		future_list.append(cloud_func('a6c92813443ed402dab1985921470e92-1252235988.us-east-1.elb.amazonaws.com', solution_key)) # routing_elb
 	count = 1
 	print("[[",future_list,"]]")
 	for future in future_list:
@@ -72,8 +72,10 @@ while run <=24:
 	result = None
 	while result is None:
 		# print("dc.kvs_client", dc.kvs_client, "||")
-		print("++", dc.kvs_client.get(solution_key), "--")
+		print("&$", dc.kvs_client.get(solution_key), "&$")
+		print("|$$$", type(dc.kvs_client.get(solution_key)[solution_key].payload.peekitem(0)), "|")
 		if dc.kvs_client.get(solution_key)[solution_key] is not None: 
+			print("heyyyy  dc.kvs_client.get(solution_key)[solution_key] is not None")
 			result = dc.kvs_client.get(solution_key)[solution_key].payload.peekitem(0)
 		if time.time() - start > 60: # terminate after 60 sec 
 			break
@@ -95,11 +97,13 @@ while run <=24:
 			f.write(output + '\n')
 			#print(result.priority)
 		current_time = time.time()
-		if current_time - start > 60: # run for 60 seconds
+		if current_time - start > 1: # run for 60 seconds
 			break
 	print('getting results')
 	for future in future_list:
+		print(",,,,,,,")
 		future.get()
+
 	print('printing waypoints')
 	print(deserializePath(result[1]))
 f.close()
