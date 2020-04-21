@@ -78,24 +78,28 @@ def get_scheduler_update_address(ip):
     return 'tcp://' + ip + ':' + str(sutils.SCHED_UPDATE_PORT)
 
 
-def get_ip_set(request_ip, socket_cache, exec_threads=True):
-    sckt = socket_cache.get(request_ip)
-
+def get_ip_set(management_request_socket, exec_threads=True):
     # we can send an empty request because the response is always thes same
-    sckt.send(b'')
+    management_request_socket.send(b'')
 
-    ips = StringSet()
-    ips.ParseFromString(sckt.recv())
-    result = set()
+    try:
+        ips = StringSet()
+        ips.ParseFromString(management_request_socket.recv())
+        result = set()
 
-    if exec_threads:
-        for ip in ips.keys:
-            for i in range(NUM_EXEC_THREADS):
-                result.add((ip, i))
+        if exec_threads:
+            for ip in ips.keys:
+                for i in range(NUM_EXEC_THREADS):
+                    result.add((ip, i))
 
-        return result
-    else:
-        return set(ips.keys)
+            return result
+        else:
+            return set(ips.keys)
+    except zmq.ZMQError as e:
+        if e.errno == zmq.EAGAIN:
+            return set()
+        else:
+            raise e
 
 
 def find_dag_source(dag):
