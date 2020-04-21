@@ -12,6 +12,8 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
+import zmq
+
 from anna.lattices import SetLattice
 
 import cloudburst.server.utils as sutils
