@@ -151,7 +151,7 @@ class DefaultCloudburstSchedulerPolicy(BaseCloudburstSchedulerPolicy):
         # if max_ip not in self.running_counts:
         #     self.running_counts[max_ip] = set()
 
-        self.running_counts[max_ip].add(time.time())
+        # self.running_counts[max_ip].add(time.time())
         target_ip = sys_random.sample(executors, 1)[0]
 
         # Remove this IP/tid pair from the system's metadata until it notifies
