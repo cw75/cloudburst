@@ -33,6 +33,8 @@ def pin(pin_socket, pusher_cache, kvs, status, function_cache, runtimes,
     # mode.
     if (not local and ((len(function_cache) > 0 and name not in function_cache)
             or not status.running)):
+        logging.info('Pin %s error.' % (name))
+        print('Pin %s error.' % (name))
         sutils.error.SerializeToString()
         sckt.send(sutils.error.SerializeToString())
         return
@@ -54,6 +56,7 @@ def pin(pin_socket, pusher_cache, kvs, status, function_cache, runtimes,
     runtimes[name] = []
     exec_counts[name] = 0
     logging.info('Adding function %s to my local pinned functions.' % (name))
+    print('Adding function %s to my local pinned functions.' % (name))
     
     sckt.send(sutils.ok_resp)
 

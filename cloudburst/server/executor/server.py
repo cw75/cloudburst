@@ -162,6 +162,8 @@ def executor(ip, mgmt_ip, schedulers, thread_id):
             print('finished pin request')
 
         if unpin_socket in socks and socks[unpin_socket] == zmq.POLLIN:
+            logging.info('received unpin request')
+            print('received unpin request')
             work_start = time.time()
             unpin(unpin_socket, status, function_cache, runtimes,
                   exec_counts)
@@ -170,6 +172,8 @@ def executor(ip, mgmt_ip, schedulers, thread_id):
             elapsed = time.time() - work_start
             event_occupancy['unpin'] += elapsed
             total_occupancy += elapsed
+            logging.info('finished unpin request')
+            print('finished unpin request')
 
         if exec_socket in socks and socks[exec_socket] == zmq.POLLIN:
             work_start = time.time()
@@ -219,6 +223,7 @@ def executor(ip, mgmt_ip, schedulers, thread_id):
 
                 if fname not in function_cache:
                     logging.error('%s not in function cache', fname)
+                    print('%s not in function cache', fname)
 
                 success = exec_dag_function(pusher_cache, client,
                                             triggers, function_cache[fname],
@@ -282,6 +287,7 @@ def executor(ip, mgmt_ip, schedulers, thread_id):
 
                     if fname not in function_cache:
                         logging.error('%s not in function cache', fname)
+                        print('%s not in function cache', fname)
 
                     success = exec_dag_function(pusher_cache, client,
                                                 triggers,
@@ -389,6 +395,8 @@ def executor(ip, mgmt_ip, schedulers, thread_id):
             for fname in queue:
                 if len(queue[fname]) == 0 and fname not in status.functions:
                     del_list.append(fname)
+                    logging.info('deleting %s from cache', fname)
+                    print('deleting %s from cache', fname)
                     del function_cache[fname]
                     del runtimes[fname]
                     del exec_counts[fname]
