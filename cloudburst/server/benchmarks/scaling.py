@@ -15,6 +15,7 @@
 import logging
 import sys
 import time
+import numpy as np
 import random
 
 import cloudpickle as cp
@@ -27,10 +28,40 @@ from cloudburst.server.benchmarks import utils
 from cloudburst.shared.reference import CloudburstReference
 
 
+def get_base(N, skew):
+    base = 0.0
+    for k in range(1, N+1):
+        base += np.power(k, -1*skew)
+    return 1 / float(base)
+
+
+
+def sample(n, base, sum_probs):
+    zipf_value = None
+    low = 1
+    high = n
+
+    z = random.random()
+    while z == 0 or z == 1:
+        z = random.random()
+
+    while True:
+        mid = int(np.floor((low + high) / 2))
+        if sum_probs[mid] >= z and sum_probs[mid - 1] < z:
+            zipf_value = mid
+            break
+        elif sum_probs[mid] >= z:
+            high = mid - 1
+        else:
+            low = mid + 1
+        if low > high:
+            break
+    return zipf_value
+
 def run(cloudburst_client, num_requests, sckt, create):
     ''' DEFINE AND REGISTER FUNCTIONS '''
     dag_name = 'scaling'
-    num_keys = 10000
+    num_keys = 1000000
 
     if create:
         def slp(cloudburst, x, y):
@@ -79,7 +110,14 @@ def run(cloudburst_client, num_requests, sckt, create):
         return [], [], [], 0
     else:
         ''' RUN DAG '''
-        arg_map = {'sleep': [1, 1]}
+        #arg_map = {'sleep': [1, 1]}
+
+        zipf = 1.0
+        base = get_base(num_keys, zipf)
+        sum_probs = {}
+        sum_probs[0] = 0.0
+        for i in range(1, num_keys+1):
+            sum_probs[i] = sum_probs[i - 1] + (base / np.power(float(i), zipf))
 
         total_time = []
         epoch_req_count = 0
@@ -88,17 +126,17 @@ def run(cloudburst_client, num_requests, sckt, create):
         epoch_start = time.time()
         epoch = 0
         for _ in range(num_requests):
-            '''refs = []
+            refs = []
             for _ in range(2):
-                k = random.randint(0, num_keys)
+                k = sample(num_keys, base, sum_probs)
                 k = str(k).zfill(7)
                 refs.append(CloudburstReference(k, True))
             arg_map = {'sleep': refs}
-            out_key = random.randint(0, num_keys)
-            out_key = str(out_key).zfill(7)'''
+            out_key = sample(num_keys, base, sum_probs)
+            out_key = str(out_key).zfill(7)
             start = time.time()
-            #res = cloudburst_client.call_dag(dag_name, arg_map, True, NORMAL, out_key)
-            res = cloudburst_client.call_dag(dag_name, arg_map, True)
+            res = cloudburst_client.call_dag(dag_name, arg_map, True, NORMAL, out_key)
+            #res = cloudburst_client.call_dag(dag_name, arg_map, True)
             end = time.time()
 
             if res is not None:
