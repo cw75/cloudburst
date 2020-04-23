@@ -79,7 +79,7 @@ def run(cloudburst_client, num_requests, sckt, create):
         return [], [], [], 0
     else:
         ''' RUN DAG '''
-        #arg_map = {'sleep': [1, 1]}
+        arg_map = {'sleep': [1, 1]}
 
         total_time = []
         epoch_req_count = 0
@@ -88,17 +88,17 @@ def run(cloudburst_client, num_requests, sckt, create):
         epoch_start = time.time()
         epoch = 0
         for _ in range(num_requests):
-            refs = []
+            '''refs = []
             for _ in range(2):
                 k = random.randint(0, num_keys)
                 k = str(k).zfill(7)
                 refs.append(CloudburstReference(k, True))
             arg_map = {'sleep': refs}
             out_key = random.randint(0, num_keys)
-            out_key = str(out_key).zfill(7)
+            out_key = str(out_key).zfill(7)'''
             start = time.time()
-            res = cloudburst_client.call_dag(dag_name, arg_map, True, NORMAL, out_key)
-            #res = cloudburst_client.call_dag(dag_name, arg_map, True)
+            #res = cloudburst_client.call_dag(dag_name, arg_map, True, NORMAL, out_key)
+            res = cloudburst_client.call_dag(dag_name, arg_map, True)
             end = time.time()
 
             if res is not None:
