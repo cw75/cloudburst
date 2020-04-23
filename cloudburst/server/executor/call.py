@@ -284,6 +284,13 @@ def _exec_dag_function_normal(pusher_cache, kvs, triggers, function, schedule,
             logging.info('DAG %s (ID %s) result returned to requester.' %
                          (schedule.dag.name, trigger.id))
             sckt.send(serializer.dump(result))
+            # for autoscaling benchmark only
+            lattice = serializer.dump_lattice(result)
+            output_key = schedule.output_key if schedule.output_key \
+                else schedule.id
+            logging.info('DAG %s (ID %s) result in KVS at %s.' %
+                         (schedule.dag.name, trigger.id, output_key))
+            kvs.put(output_key, lattice)
 
         else:
             lattice = serializer.dump_lattice(result)

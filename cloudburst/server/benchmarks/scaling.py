@@ -15,6 +15,7 @@
 import logging
 import sys
 import time
+import random
 
 import cloudpickle as cp
 
@@ -25,9 +26,10 @@ from cloudburst.server.benchmarks import utils
 def run(cloudburst_client, num_requests, sckt, create):
     ''' DEFINE AND REGISTER FUNCTIONS '''
     dag_name = 'scaling'
+    num_keys = 10000
 
     if create:
-        def slp(cloudburst, x):
+        def slp(cloudburst, x, y):
             import time
             time.sleep(.050)
             return x
@@ -41,10 +43,10 @@ def run(cloudburst_client, num_requests, sckt, create):
             sys.exit(1)
 
         ''' TEST REGISTERED FUNCTIONS '''
-        sleep_test = cloud_sleep(2).get()
+        sleep_test = cloud_sleep(2, 2).get()
         if sleep_test != 2:
-            logging.info('Unexpected result from sleep(2): %s' % (str(sleep_test)))
-            print('Unexpected result from sleep(2): %s' % (str(sleep_test)))
+            logging.info('Unexpected result from sleep(2, 2): %s' % (str(sleep_test)))
+            print('Unexpected result from sleep(2, 2): %s' % (str(sleep_test)))
             sys.exit(1)
         logging.info('Successfully tested functions!')
         print('Successfully tested functions!')
@@ -58,10 +60,22 @@ def run(cloudburst_client, num_requests, sckt, create):
             print('Failed to register DAG: %s' % (CloudburstError.Name(error)))
             sys.exit(1)
 
+        ''' WARMUP KEYS '''
+        logging.info('Begin warmup')
+        val = '0'.zfill(8)
+        for i in range(num_keys):
+            if i % 1000 == 0:
+                logging.info('Warmed up key %s', i)
+            k = str(i).zfill(7)
+            cloudburst_client.put_object(k, val)
+        logging.info('Finish warmup')
+
+
+
         return [], [], [], 0
     else:
         ''' RUN DAG '''
-        arg_map = {'sleep': [1]}
+        #arg_map = {'sleep': [1]}
 
         total_time = []
         epoch_req_count = 0
@@ -70,8 +84,16 @@ def run(cloudburst_client, num_requests, sckt, create):
         epoch_start = time.time()
         epoch = 0
         for _ in range(num_requests):
+            refs = []
+            for _ in range(2):
+                k = random.randint(0, num_keys)
+                k = str(k).zfill(7)
+                refs.append(CloudburstReference(k, True))
+            arg_map = {'sleep': refs}
+            out_key = random.randint(0, num_keys)
+            out_key = str(out_key).zfill(7)
             start = time.time()
-            res = cloudburst_client.call_dag(dag_name, arg_map, True)
+            res = cloudburst_client.call_dag(dag_name, arg_map, True, NORMAL, out_key)
             end = time.time()
 
             if res is not None:
