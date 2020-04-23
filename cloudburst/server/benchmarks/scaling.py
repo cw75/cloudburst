@@ -19,7 +19,10 @@ import random
 
 import cloudpickle as cp
 
-from cloudburst.shared.proto.cloudburst_pb2 import CloudburstError
+from cloudburst.shared.proto.cloudburst_pb2 import (
+    CloudburstError,
+    NORMAL,
+)
 from cloudburst.server.benchmarks import utils
 from cloudburst.shared.reference import CloudburstReference
 
