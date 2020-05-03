@@ -58,7 +58,12 @@ class CloudburstConnection():
 
         self.service_addr = 'tcp://' + func_addr + ':%d'
         self.context = zmq.Context(1)
+
         kvs_addr = self._connect()
+        while not kvs_addr:
+            logging.info('Connection timed out, retrying')
+            print('Connection timed out, retrying')
+            kvs_addr = self._connect()
 
         # Picks a random offset of 10, mostly to alleviate port conflicts when
         # running in local mode.
@@ -145,7 +150,7 @@ class CloudburstConnection():
         else:
             raise RuntimeError(f'Unexpected error while registering function: {resp}.')
 
-    def register_dag(self, name, functions, connections):
+    def register_dag(self, name, functions, connections, colocated=[]):
         '''
         Registers a new DAG with the system. This operation will fail if any of
         the functions provided cannot be identified in the system.
@@ -154,6 +159,8 @@ class CloudburstConnection():
         functions: A list of names of functions to be included in this DAG.
         connections: A list of ordered pairs of function names that represent
         the edges in this DAG.
+        colocated: A list of function names that (if possible) should be
+        colocated.
         '''
 
         flist = self._get_func_list()
@@ -168,6 +175,8 @@ class CloudburstConnection():
 
         dag = Dag()
         dag.name = name
+        dag.colocated.extend(colocated)
+
         for function in functions:
             ref = dag.functions.add()
 
@@ -196,7 +205,8 @@ class CloudburstConnection():
         return r.success, r.error
 
     def call_dag(self, dname, arg_map, direct_response=False,
-                 consistency=NORMAL, output_key=None, client_id=None):
+                 consistency=NORMAL, output_key=None, client_id=None,
+                 dry_run=False, continuation=None):
         '''
         Issues a new request to execute the DAG. Returns a CloudburstFuture that
 
@@ -233,26 +243,39 @@ class CloudburstConnection():
         if direct_response:
             dc.response_address = self.response_address
 
+        if continuation:
+            if bool(continuation.response_address) != direct_response:
+                raise RuntimeError('Continuation does not have same direct'
+                                   + ' response setting as current call.')
+
+            dc.continuation.name = continuation.name
+            dc.continuation.call.CopyFrom(continuation)
+
+        if dry_run:
+            return dc
+
         self.dag_call_sock.send(dc.SerializeToString())
 
         r = GenericResponse()
         r.ParseFromString(self.dag_call_sock.recv())
 
-        if direct_response:
-            try:
-                result = self.response_sock.recv()
-                return serializer.load(result)
-            except zmq.ZMQError as e:
-                if e.errno == zmq.EAGAIN:
-                    return None
-                else:
-                    raise e
-        else:
-            if r.success:
+        if r.success:
+            if direct_response:
+                try:
+                    result = self.response_sock.recv()
+                    return serializer.load(result)
+                except zmq.ZMQError as e:
+                    if e.errno == zmq.EAGAIN:
+                        logging.error('Request timed out')
+                        return None
+                    else:
+                        raise e
+            else:
                 return CloudburstFuture(r.response_id, self.kvs_client,
                                      serializer)
-            else:
-                return None
+        else:
+            logging.error('Scheduler returned unexpected error: \n' + str(r))
+            raise RuntimeError(str(r.error))
 
     def delete_dag(self, dname):
         '''
@@ -302,10 +325,18 @@ class CloudburstConnection():
 
     def _connect(self):
         sckt = self.context.socket(zmq.REQ)
+        sckt.setsockopt(zmq.RCVTIMEO, 1000)
         sckt.connect(self.service_addr % CONNECT_PORT)
         sckt.send_string('')
 
-        return sckt.recv_string()
+        try:
+            result = sckt.recv_string()
+            return result
+        except zmq.ZMQError as e:
+            if e.errno == zmq.EAGAIN:
+                return None
+            else:
+                raise e
 
     def _get_func_list(self, prefix=None):
         msg = prefix if prefix else ''
