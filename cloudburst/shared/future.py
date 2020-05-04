@@ -17,7 +17,6 @@ class CloudburstFuture():
     def __init__(self, obj_id, kvs_client, serializer):
         self.obj_id = obj_id
         self.kvs_client = kvs_client
-        print("33", self.kvs_client, "in CloudbusrtFuture 44")
         self.serializer = serializer
 
     def get(self):
