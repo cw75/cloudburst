@@ -368,14 +368,17 @@ class Handler(BaseHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(json_obj['challenge'].encode())
             else:
-                channel_id = json_obj['event']['channel']
-                user_id = json_obj['event']['user']
-                text = json_obj['event']['text']
-                ts = json_obj['event']['ts']
+                event = json_obj['event']
+                if 'channel' in event and 'user' in event and 'ts' in event and 'text' in event:
+                    channel_id = event['channel']
+                    user_id = event['user']
+                    text = event['text']
+                    ts = event['ts']
 
-                logging.info('text is ' + text)
+                    logging.info('text is ' + text)
 
-                response = slack_web_client.reactions_add(channel=channel_id,name='thumbup',timestamp=ts)
+                    response = slack_web_client.reactions_add(channel=channel_id,name='thumbsup',timestamp=ts)
+                    logging.info(response)
         else:
             self.send_response(400)
             self.end_headers()
