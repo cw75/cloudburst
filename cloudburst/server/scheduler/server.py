@@ -61,11 +61,15 @@ from cloudburst.shared.utils import (
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import threading
 
+from slack import WebClient
+
 METADATA_THRESHOLD = 5
 REPORT_THRESHOLD = 5
 
 logging.basicConfig(filename='log_scheduler.txt', level=logging.INFO,
                     format='%(asctime)s %(message)s')
+
+slack_web_client = WebClient(token='xoxb-1189572766630-1196518007843-ve4nmW55Au7P5e0FVebM3Msh')
 
 
 def scheduler(ip, mgmt_ip, route_addr):
@@ -354,12 +358,21 @@ class Handler(BaseHTTPRequestHandler):
         if '/slack/events' in self.path:
             json_obj = json.loads(self.rfile.read(int(self.headers['Content-Length'])))
             logging.info(json_obj)
-            self.send_response(200)
-            self.send_header('content-type', 'text/plain')
-            self.end_headers()
 
-            #self.wfile.write(json_obj['challenge'])
-            self.wfile.write(b'good')
+            if 'challenge' in json_obj:
+                self.send_response(200)
+                self.send_header('content-type', 'text/plain')
+                self.end_headers()
+                self.wfile.write(json_obj['challenge'].encode())
+            else:
+                channel_id = json_obj['event']['channel']
+                user_id = json_obj['event']['user']
+                text = json_obj['event']['text']
+                ts = json_obj['event']['ts']
+
+                logging.info('text is ' + text)
+
+                response = slack_web_client.reactions_add(channel=channel_id,name='thumbup',timestamp=ts)
         else:
             self.send_response(400)
             self.end_headers()
