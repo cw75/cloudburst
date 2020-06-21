@@ -60,6 +60,7 @@ from cloudburst.shared.utils import (
 
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import threading
+import os
 
 from slack import WebClient
 
@@ -69,7 +70,9 @@ REPORT_THRESHOLD = 5
 logging.basicConfig(filename='log_scheduler.txt', level=logging.INFO,
                     format='%(asctime)s %(message)s')
 
-slack_web_client = WebClient(token='xoxb-1189572766630-1196518007843-iYcM4Ph5sJBDG2Ov2UlWlU5G')
+logging.info(os.environ["BOT_TOKEN"])
+
+slack_web_client = WebClient(token=os.environ["BOT_TOKEN"])
 
 
 def scheduler(ip, mgmt_ip, route_addr):
