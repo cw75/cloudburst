@@ -69,7 +69,7 @@ REPORT_THRESHOLD = 5
 logging.basicConfig(filename='log_scheduler.txt', level=logging.INFO,
                     format='%(asctime)s %(message)s')
 
-slack_web_client = WebClient(token='xoxb-1189572766630-1196518007843-ve4nmW55Au7P5e0FVebM3Msh')
+slack_web_client = WebClient(token='xoxb-1189572766630-1196518007843-iYcM4Ph5sJBDG2Ov2UlWlU5G')
 
 
 def scheduler(ip, mgmt_ip, route_addr):
