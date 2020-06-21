@@ -58,6 +58,9 @@ from cloudburst.shared.utils import (
     LIST_PORT
 )
 
+from http.server import BaseHTTPRequestHandler, HTTPServer
+import threading
+
 METADATA_THRESHOLD = 5
 REPORT_THRESHOLD = 5
 
@@ -333,6 +336,41 @@ def scheduler(ip, mgmt_ip, route_addr):
 
             start = time.time()
 
+class MyHTTPServer(HTTPServer):
+    def __init__(self, *args, **kwargs):
+        HTTPServer.__init__(self, *args, **kwargs)
+
+class Handler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        logging.info('received GET')
+        logging.info('path is ' + self.path)
+        self.send_response(200)
+        self.end_headers()
+        self.wfile.write(b'')
+
+    def do_POST(self):
+        logging.info('received POST')
+        logging.info('path is ' + self.path)
+        if '/slack/events' in self.path:
+            json_obj = json.loads(self.rfile.read(int(self.headers['Content-Length'])))
+            logging.info(json_obj)
+            self.send_response(200)
+            self.send_header('content-type', 'text/plain')
+            self.end_headers()
+
+            #self.wfile.write(json_obj['challenge'])
+            self.wfile.write(b'good')
+        else:
+            self.send_response(400)
+            self.end_headers()
+            self.wfile.write(b'')
+
+class WebThread(threading.Thread):
+    def run(self):
+        server_address = ('0.0.0.0', 80)
+        httpd = MyHTTPServer(server_address, Handler)
+        httpd.serve_forever()
+
 
 if __name__ == '__main__':
     if len(sys.argv) > 1:
@@ -343,4 +381,5 @@ if __name__ == '__main__':
     conf = sutils.load_conf(conf_file)
     sched_conf = conf['scheduler']
 
+    WebThread().start()
     scheduler(conf['ip'], conf['mgmt_ip'], sched_conf['routing_address'])
