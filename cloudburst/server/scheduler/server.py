@@ -317,7 +317,7 @@ def scheduler(ip, mgmt_ip, route_addr):
             logging.info(fname)
             args = [serializer.dump(event, serialize=False)]
             logging.info('dumped args')
-            al = dc.function_args[fname]
+            al = dc.function_args[fname.name]
             al.values.extend(args)
 
             logging.info('Calling slack app')
