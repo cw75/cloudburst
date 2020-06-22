@@ -73,9 +73,6 @@ class Serializer():
             valobj.body = self._dump_default(CloudburstReference(data.obj_id,
                                                               True))
             valobj.type = DEFAULT
-        '''elif isinstance(data, np.ndarray) or isinstance(data, pd.DataFrame):
-            valobj.body = self._dump_numpy(data)
-            valobj.type = NUMPY'''
         elif isinstance(data, str):
             valobj.body =  self._dump_string(data)
             valobj.type = STRING
