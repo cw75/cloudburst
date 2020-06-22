@@ -314,8 +314,9 @@ def scheduler(ip, mgmt_ip, route_addr):
 
             logging.info('getting function')
             fname = dag[0].functions[0]
-            logging.info('got function')
+            logging.info(fname)
             args = [serializer.dump(event, serialize=False)]
+            logging.info('dumped args')
             al = dc.function_args[fname]
             al.values.extend(args)
 
