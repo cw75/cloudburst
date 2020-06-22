@@ -292,6 +292,7 @@ def scheduler(ip, mgmt_ip, route_addr):
         if slack_socket in socks and socks[slack_socket] == zmq.POLLIN:
             logging.info('received at main loop')
             msg = slack_socket.recv_string()
+            logging.info(msg)
             #name, event = cp.loads(slack_socket.recv())
             logging.info('finish receiving')
             continue
