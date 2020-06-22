@@ -298,7 +298,6 @@ def scheduler(ip, mgmt_ip, route_addr):
             logging.info(event)
             #name, event = cp.loads(slack_socket.recv())
             logging.info('finish parsing')
-            continue
 
             if name not in dags:
                 logging.error('Error: slack app not registered as DAG')
@@ -308,11 +307,14 @@ def scheduler(ip, mgmt_ip, route_addr):
             for fname in dag[0].functions:
                 call_frequency[fname.name] += 1
 
+            logging.info('forming DAG object')
             dc = DagCall()
             dc.name = name
             dc.consistency = NORMAL
 
+            logging.info('getting function')
             fname = dag[0].functions[0]
+            logging.info('got function')
             args = [serializer.dump(event, serialize=False)]
             al = dc.function_args[fname]
             al.values.extend(args)
