@@ -24,7 +24,7 @@ from anna.lattices import (
 import cloudpickle as cp
 import numpy as np
 #import pandas as pd
-import pyarrow as pa
+#import pyarrow as pa
 
 from cloudburst.server.utils import DEFAULT_VC, generate_timestamp
 from cloudburst.shared.proto.cloudburst_pb2 import (
@@ -162,12 +162,3 @@ class Serializer():
 
     def _load_string(self, msg):
         return str(msg, 'utf-8')
-
-    def _dump_numpy(self, msg):
-        return pa.serialize(msg).to_buffer().to_pybytes()
-
-    def _load_numpy(self, msg):
-        if not msg:
-            return msg
-
-        return pa.deserialize(msg)
