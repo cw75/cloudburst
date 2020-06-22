@@ -291,9 +291,9 @@ def scheduler(ip, mgmt_ip, route_addr):
 
         if slack_socket in socks and socks[slack_socket] == zmq.POLLIN:
             logging.info('received at main loop')
-            msg = slack_socket.recv_string()
+            msg = slack_socket.recv()
             logging.info('finish receiving')
-            name, event = cp.loads(msg)
+            name = cp.loads(msg)
             logging.info(name)
             #name, event = cp.loads(slack_socket.recv())
             logging.info('finish parsing')
@@ -413,7 +413,8 @@ class Handler(BaseHTTPRequestHandler):
                 event = json_obj['event']
                 if 'channel' in event and 'user' in event and 'ts' in event and 'text' in event:
                     #self.server.pusher.send(cp.dumps([app_id, event]))
-                    self.server.pusher.send_string(cp.dumps([app_id, event]))
+                    logging.info('sending to main loop')
+                    self.server.pusher.send(cp.dumps(app_id))
                     logging.info('sent to main loop')
                     #channel_id = event['channel']
                     #user_id = event['user']
