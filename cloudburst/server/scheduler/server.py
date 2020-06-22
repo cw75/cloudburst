@@ -40,7 +40,8 @@ from cloudburst.shared.proto.cloudburst_pb2 import (
     DagCall,
     GenericResponse,
     NO_SUCH_DAG,  # Cloudburst's error types
-    Value
+    Value,
+    NORMAL
 )
 from cloudburst.shared.proto.internal_pb2 import (
     ExecutorStatistics,
@@ -48,6 +49,7 @@ from cloudburst.shared.proto.internal_pb2 import (
     ThreadStatus
 )
 from cloudburst.shared.proto.shared_pb2 import StringSet
+from cloudburst.shared.serializer import Serializer
 from cloudburst.shared.utils import (
     CONNECT_PORT,
     DAG_CALL_PORT,
@@ -63,6 +65,7 @@ import threading
 import os
 
 from slack import WebClient
+import cloudpickle as cp
 
 METADATA_THRESHOLD = 5
 REPORT_THRESHOLD = 5
@@ -74,6 +77,10 @@ logging.info(os.environ["BOT_TOKEN"])
 
 slack_web_client = WebClient(token=os.environ["BOT_TOKEN"])
 
+context = zmq.Context(1)
+
+serializer = Serializer()
+
 
 def scheduler(ip, mgmt_ip, route_addr):
 
@@ -82,8 +89,6 @@ def scheduler(ip, mgmt_ip, route_addr):
     kvs = AnnaTcpClient(route_addr, ip, local=local)
 
     scheduler_id = str(uuid.uuid4())
-
-    context = zmq.Context(1)
 
     # A mapping from a DAG's name to its protobuf representation.
     dags = {}
@@ -140,6 +145,9 @@ def scheduler(ip, mgmt_ip, route_addr):
     continuation_socket.bind(sutils.BIND_ADDR_TEMPLATE %
                              (sutils.CONTINUATION_PORT))
 
+    slack_socket = context.socket(zmq.PULL)
+    slack_socket.bind('tcp://*:9000')
+
     if not local:
         management_request_socket = context.socket(zmq.REQ)
         management_request_socket.setsockopt(zmq.RCVTIMEO, 500)
@@ -163,6 +171,7 @@ def scheduler(ip, mgmt_ip, route_addr):
     poller.register(exec_status_socket, zmq.POLLIN)
     poller.register(sched_update_socket, zmq.POLLIN)
     poller.register(continuation_socket, zmq.POLLIN)
+    poller.register(slack_socket, zmq.POLLIN)
 
     # Start the policy engine.
     policy = DefaultCloudburstSchedulerPolicy(pin_accept_socket, pusher_cache,
@@ -280,6 +289,30 @@ def scheduler(ip, mgmt_ip, route_addr):
 
             call_dag(call, pusher_cache, dags, policy, continuation.id)
 
+        if slack_socket in socks and socks[slack_socket] == zmq.POLLIN:
+            event = cp.loads(slack_socket.recv())
+            name = event['api_app_id']
+
+            if name not in dags:
+                logging.error('Error: slack app not registered as DAG')
+                continue
+
+            dag = dags[name]
+            for fname in dag[0].functions:
+                call_frequency[fname.name] += 1
+
+            dc = DagCall()
+            dc.name = name
+            dc.consistency = NORMAL
+
+            fname = dag[0].functions[0]
+            args = [serializer.dump(event, serialize=False)]
+            al = dc.function_args[fname]
+            al.values.extend(args)
+
+            logging.info('Calling slack app')
+            call_dag(dc, pusher_cache, dags, policy)
+
         end = time.time()
 
         if end - start > METADATA_THRESHOLD:
@@ -346,6 +379,8 @@ def scheduler(ip, mgmt_ip, route_addr):
 class MyHTTPServer(HTTPServer):
     def __init__(self, *args, **kwargs):
         HTTPServer.__init__(self, *args, **kwargs)
+        self.pusher = context.socket(zmq.PUSH)
+        self.pusher.connect('tcp://localhost:9000')
 
 class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
@@ -369,16 +404,17 @@ class Handler(BaseHTTPRequestHandler):
                 self.wfile.write(json_obj['challenge'].encode())
             else:
                 event = json_obj['event']
-                if 'channel' in event and 'user' in event and 'ts' in event and 'text' in event:
-                    channel_id = event['channel']
-                    user_id = event['user']
-                    text = event['text']
-                    ts = event['ts']
+                if 'api_app_id' in event and 'channel' in event and 'user' in event and 'ts' in event and 'text' in event:
+                    self.server.pusher.send(cp.dumps(event))
+                    #channel_id = event['channel']
+                    #user_id = event['user']
+                    #text = event['text']
+                    #ts = event['ts']
 
-                    logging.info('text is ' + text)
+                    #logging.info('text is ' + text)
 
-                    response = slack_web_client.reactions_add(channel=channel_id,name='thumbsup',timestamp=ts)
-                    logging.info(response)
+                    #response = slack_web_client.reactions_add(channel=channel_id,name='thumbsup',timestamp=ts)
+                    #logging.info(response)
         else:
             self.send_response(400)
             self.end_headers()
