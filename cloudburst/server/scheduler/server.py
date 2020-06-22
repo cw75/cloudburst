@@ -146,7 +146,7 @@ def scheduler(ip, mgmt_ip, route_addr):
                              (sutils.CONTINUATION_PORT))
 
     slack_socket = context.socket(zmq.PULL)
-    slack_socket.bind('tcp://*:9000')
+    slack_socket.bind('tcp://*:6000')
 
     if not local:
         management_request_socket = context.socket(zmq.REQ)
@@ -290,6 +290,7 @@ def scheduler(ip, mgmt_ip, route_addr):
             call_dag(call, pusher_cache, dags, policy, continuation.id)
 
         if slack_socket in socks and socks[slack_socket] == zmq.POLLIN:
+            logging.info('received at main loop')
             event = cp.loads(slack_socket.recv())
             name = event['api_app_id']
 
@@ -380,7 +381,7 @@ class MyHTTPServer(HTTPServer):
     def __init__(self, *args, **kwargs):
         HTTPServer.__init__(self, *args, **kwargs)
         self.pusher = context.socket(zmq.PUSH)
-        self.pusher.connect('tcp://localhost:9000')
+        self.pusher.connect('tcp://localhost:6000')
 
 class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
@@ -406,6 +407,7 @@ class Handler(BaseHTTPRequestHandler):
                 event = json_obj['event']
                 if 'api_app_id' in event and 'channel' in event and 'user' in event and 'ts' in event and 'text' in event:
                     self.server.pusher.send(cp.dumps(event))
+                    logging.info('sent to main loop')
                     #channel_id = event['channel']
                     #user_id = event['user']
                     #text = event['text']
