@@ -23,7 +23,7 @@ from anna.lattices import (
 )
 import cloudpickle as cp
 import numpy as np
-import pandas as pd
+#import pandas as pd
 import pyarrow as pa
 
 from cloudburst.server.utils import DEFAULT_VC, generate_timestamp
@@ -73,9 +73,9 @@ class Serializer():
             valobj.body = self._dump_default(CloudburstReference(data.obj_id,
                                                               True))
             valobj.type = DEFAULT
-        elif isinstance(data, np.ndarray) or isinstance(data, pd.DataFrame):
+        '''elif isinstance(data, np.ndarray) or isinstance(data, pd.DataFrame):
             valobj.body = self._dump_numpy(data)
-            valobj.type = NUMPY
+            valobj.type = NUMPY'''
         elif isinstance(data, str):
             valobj.body =  self._dump_string(data)
             valobj.type = STRING
