@@ -146,7 +146,7 @@ def scheduler(ip, mgmt_ip, route_addr):
                              (sutils.CONTINUATION_PORT))
 
     slack_socket = context.socket(zmq.PULL)
-    slack_socket.bind('ipc:///slack')
+    slack_socket.bind('ipc:///slack/post')
 
     if not local:
         management_request_socket = context.socket(zmq.REQ)
@@ -380,7 +380,7 @@ class MyHTTPServer(HTTPServer):
     def __init__(self, *args, **kwargs):
         HTTPServer.__init__(self, *args, **kwargs)
         self.pusher = context.socket(zmq.PUSH)
-        self.pusher.connect('ipc:///slack')
+        self.pusher.connect('ipc:///slack/post')
 
 class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
