@@ -291,7 +291,10 @@ def scheduler(ip, mgmt_ip, route_addr):
 
         if slack_socket in socks and socks[slack_socket] == zmq.POLLIN:
             logging.info('received at main loop')
-            name, event = cp.loads(slack_socket.recv())
+            msg = slack_socket.recv_string()
+            #name, event = cp.loads(slack_socket.recv())
+            logging.info('finish receiving')
+            continue
 
             if name not in dags:
                 logging.error('Error: slack app not registered as DAG')
@@ -406,7 +409,8 @@ class Handler(BaseHTTPRequestHandler):
                 app_id = json_obj['api_app_id']
                 event = json_obj['event']
                 if 'channel' in event and 'user' in event and 'ts' in event and 'text' in event:
-                    self.server.pusher.send(cp.dumps([app_id, event]))
+                    #self.server.pusher.send(cp.dumps([app_id, event]))
+                    self.server.pusher.send_string('hello')
                     logging.info('sent to main loop')
                     #channel_id = event['channel']
                     #user_id = event['user']
