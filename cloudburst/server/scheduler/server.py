@@ -413,6 +413,9 @@ class Handler(BaseHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(json_obj['challenge'].encode())
             else:
+                self.send_response(200)
+                self.end_headers()
+                self.wfile.write(b'')
                 app_id = json_obj['api_app_id']
                 event = json_obj['event']
                 if 'channel' in event and 'user' in event and 'ts' in event and 'text' in event:
