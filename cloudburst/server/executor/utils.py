@@ -13,6 +13,7 @@
 #  limitations under the License.
 
 import random
+import logging
 
 import cloudburst.server.utils as sutils
 from cloudburst.shared.proto.cloudburst_pb2 import (
