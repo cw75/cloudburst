@@ -25,6 +25,7 @@ from cloudburst.shared.proto.cloudburst_pb2 import (
     Dag,
     Function,
     NORMAL,  # Cloudburst's consistency modes
+    MULTI,
     DAG_ALREADY_EXISTS, NO_RESOURCES, NO_SUCH_DAG  # Cloudburst's error modes
 )
 import cloudburst.server.utils as sutils
@@ -33,7 +34,7 @@ from cloudburst.server.scheduler import utils
 sys_random = random.SystemRandom()
 
 
-def create_function(func_create_socket, kvs, consistency=NORMAL):
+def create_function(func_create_socket, kvs, consistency=MULTI):
     func = Function()
     func.ParseFromString(func_create_socket.recv())
 

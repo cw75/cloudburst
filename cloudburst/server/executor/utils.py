@@ -17,6 +17,7 @@ import random
 import cloudburst.server.utils as sutils
 from cloudburst.shared.proto.cloudburst_pb2 import (
     NORMAL,
+    MULTI,
     EXECUTION_ERROR
 )
 from cloudburst.shared.serializer import Serializer
@@ -47,7 +48,7 @@ def generate_error_response(schedule, client, fname):
         client.causal_put(schedule.output_key, result)
 
 
-def retrieve_function(name, kvs, user_library, consistency=NORMAL):
+def retrieve_function(name, kvs, user_library, consistency=MULTI):
     kvs_name = sutils.get_func_kvs_name(name)
 
     if consistency == NORMAL:
