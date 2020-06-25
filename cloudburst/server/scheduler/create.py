@@ -18,7 +18,7 @@ import random
 from anna.lattices import (
     LWWPairLattice,
     SetLattice,
-    SingleKeyCausalLattice
+    MultiKeyCausalLattice
 )
 
 from cloudburst.shared.proto.cloudburst_pb2 import (
@@ -45,7 +45,7 @@ def create_function(func_create_socket, kvs, consistency=MULTI):
         body = LWWPairLattice(sutils.generate_timestamp(0), func.body)
         res = kvs.put(name, body)
     else:
-        skcl = SingleKeyCausalLattice(sutils.DEFAULT_VC,
+        skcl = MultiKeyCausalLattice(sutils.DEFAULT_VC, MapLattice({}), 
                                       SetLattice({func.body}))
         kvs.put(name, skcl)
 
