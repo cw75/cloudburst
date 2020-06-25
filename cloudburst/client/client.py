@@ -57,6 +57,7 @@ class CloudburstConnection():
         '''
 
         self.service_addr = 'tcp://' + func_addr + ':%d'
+        self.slack_addr = 'http://' + func_addr + '/slack/events'
         self.context = zmq.Context(1)
 
         kvs_addr = self._connect()
@@ -350,3 +351,8 @@ class CloudburstConnection():
         flist = StringSet()
         flist.ParseFromString(self.list_sock.recv())
         return flist.keys
+
+    def register_slack_bot(self, BotClass, bot_id, bot_token):
+        self.register((BotClass, (bot_token,)), 'bot')
+        self.register_dag(bot_id, ['bot'], [])
+        print('Endpoint: %s' % self.slack_addr)
