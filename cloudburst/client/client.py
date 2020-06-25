@@ -316,6 +316,7 @@ class CloudburstConnection():
         call = FunctionCall()
         call.name = name
         call.request_id = self.rid
+        call.consistency = consistency
 
         for arg in args:
             argobj = call.arguments.values.add()
