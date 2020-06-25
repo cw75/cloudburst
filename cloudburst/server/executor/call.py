@@ -149,7 +149,6 @@ def _run_function(func, refs, args, user_lib):
                     arg[idx] = refs[val.key]
 
             func_args += (arg,)
-    print(func_args)
 
     return func(*func_args)
 
@@ -417,6 +416,7 @@ def _exec_dag_function_causal(pusher_cache, kvs, triggers, function, schedule,
 
     result = _exec_func_causal(kvs, function, fargs, user_lib, schedule,
                                key_version_locations, dependencies)
+    logging.info('result is ' + result)
 
     this_ref = None
     for ref in schedule.dag.functions:
@@ -476,8 +476,10 @@ def _exec_dag_function_causal(pusher_cache, kvs, triggers, function, schedule,
         lattice = MultiKeyCausalLattice(vector_clock, dependencies,
                                         SetLattice({result}))
 
+        logging.info('invoking causal put')
         succeed = kvs.causal_put(schedule.output_key,
                                  lattice, schedule.client_id)
+        logging.info('success? ' + succeed)
         while not succeed:
             succeed = kvs.causal_put(schedule.output_key,
                                      lattice, schedule.client_id)
