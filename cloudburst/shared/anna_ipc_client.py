@@ -222,7 +222,7 @@ class AnnaIpcClient(BaseAnnaClient):
 
         tuples = []
         for key in keys:
-            ct = request.add_tuples()
+            ct = request.tuples.add()
             ct.key = key
             tuples.append(ct)
 
