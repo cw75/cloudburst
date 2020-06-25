@@ -30,7 +30,7 @@ from cloudburst.shared.proto.cloudburst_pb2 import (
     Continuation,
     DagTrigger,
     FunctionCall,
-    NORMAL, MULTI,  # Cloudburst's consistency modes,
+    NORMAL, SINGLE, MULTI,  # Cloudburst's consistency modes,
     EXECUTION_ERROR, FUNC_NOT_FOUND,  # Cloudburst's error types
     MULTIEXEC # Cloudburst's execution types
 )
@@ -199,7 +199,7 @@ def _resolve_ref_causal(refs, kvs, schedule, key_version_locations,
     else:
         future_read_set = set()
         client_id = 0
-        consistency = MULTI
+        consistency = SINGLE
 
     keys = [ref.key for ref in refs]
     (address, versions), kv_pairs = kvs.causal_get(keys, future_read_set,

@@ -26,6 +26,7 @@ from cloudburst.shared.proto.cloudburst_pb2 import (
     FunctionCall,
     GenericResponse,
     NORMAL,  # Cloudburst consistency modes
+    SINGLE,
     MULTIEXEC # Cloudburst's execution types
 )
 from cloudburst.shared.proto.shared_pb2 import StringSet
@@ -311,7 +312,7 @@ class CloudburstConnection():
         lattice = serializer.dump_lattice(value)
         return self.kvs_client.put(key, lattice)
 
-    def exec_func(self, name, args):
+    def exec_func(self, name, args, consistency=SINGLE):
         call = FunctionCall()
         call.name = name
         call.request_id = self.rid
