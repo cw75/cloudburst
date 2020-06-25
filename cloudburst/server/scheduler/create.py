@@ -18,6 +18,7 @@ import random
 from anna.lattices import (
     LWWPairLattice,
     SetLattice,
+    MapLattice,
     MultiKeyCausalLattice
 )
 
