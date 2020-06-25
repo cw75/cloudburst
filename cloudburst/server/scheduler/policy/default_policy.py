@@ -373,8 +373,8 @@ class DefaultCloudburstSchedulerPolicy(BaseCloudburstSchedulerPolicy):
         # different than calculating two different set differences anyway.
         if key in self.thread_statuses and self.thread_statuses[key] != status:
             for function_name in self.thread_statuses[key].functions:
-                if function_name in self.function_locations:
-                    self.function_locations[function_name].discard(key)
+                if function_name in self.function_locations and key in self.function_locations[function_name]:
+                    self.function_locations[function_name].remove(key)
 
         self.thread_statuses[key] = status
         for function_name in status.functions:

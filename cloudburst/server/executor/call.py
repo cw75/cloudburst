@@ -149,6 +149,7 @@ def _run_function(func, refs, args, user_lib):
                     arg[idx] = refs[val.key]
 
             func_args += (arg,)
+    print(func_args)
 
     return func(*func_args)
 
