@@ -17,7 +17,7 @@ import random
 import cloudburst.server.utils as sutils
 from cloudburst.shared.proto.cloudburst_pb2 import (
     NORMAL,
-    MULTI,
+    SINGLE,
     EXECUTION_ERROR
 )
 from cloudburst.shared.serializer import Serializer
@@ -48,10 +48,11 @@ def generate_error_response(schedule, client, fname):
         client.causal_put(schedule.output_key, result)
 
 
-def retrieve_function(name, kvs, user_library, consistency=MULTI):
+def retrieve_function(name, kvs, user_library, consistency=SINGLE):
     kvs_name = sutils.get_func_kvs_name(name)
 
     if consistency == NORMAL:
+        logging.info('normal consistency')
         # This means that the function is stored in an LWWPairLattice.
         lattice = kvs.get(kvs_name)[kvs_name]
         if lattice:
@@ -59,6 +60,7 @@ def retrieve_function(name, kvs, user_library, consistency=MULTI):
         else:
             return None
     else:
+        logging.info('single consistency')
         # This means that the function is stored in an SingleKeyCausalLattice.
         _, result = kvs.causal_get([kvs_name])
         lattice = result[kvs_name]
