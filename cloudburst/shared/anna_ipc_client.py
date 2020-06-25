@@ -218,7 +218,7 @@ class AnnaIpcClient(BaseAnnaClient):
     def _prepare_causal_data_request(self, client_id, keys, consistency):
         request = CausalRequest()
         request.consistency = consistency
-        request.client_id = str(client_id)
+        request.id = str(client_id)
 
         tuples = []
         for key in keys:
