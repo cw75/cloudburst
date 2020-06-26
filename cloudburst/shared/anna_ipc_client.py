@@ -137,12 +137,7 @@ class AnnaIpcClient(BaseAnnaClient):
                 if tp.error == KEY_DNE:
                     return (None, kv_pairs)
 
-                val = self._deserialize(tp)
-
-                # We resolve multiple concurrent versions by randomly picking
-                # the first listed value.
-                kv_pairs[tp.key] = (val.vector_clock.reveal(),
-                                    val.reveal()[0])
+                kv_pairs[tp.key] = self._deserialize(tp)
 
             if len(resp.key_versions) != 0:
                 return ((resp.key_version_query_address,
