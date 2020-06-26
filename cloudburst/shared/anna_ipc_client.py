@@ -142,7 +142,7 @@ class AnnaIpcClient(BaseAnnaClient):
                 # We resolve multiple concurrent versions by randomly picking
                 # the first listed value.
                 kv_pairs[tp.key] = (val.vector_clock.reveal(),
-                                    val.values.reveal()[0])
+                                    val.reveal()[0])
 
             if len(resp.key_versions) != 0:
                 return ((resp.key_version_query_address,
