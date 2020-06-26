@@ -185,6 +185,8 @@ class AnnaIpcClient(BaseAnnaClient):
         return result
 
     def causal_put(self, key, mk_causal_lattice, client_id):
+        if type(key) != list:
+            key = [key]
         request, tuples = self._prepare_causal_data_request(client_id, key,
                                                             MULTI)
 
@@ -210,16 +212,16 @@ class AnnaIpcClient(BaseAnnaClient):
         else:
             return True
 
-    def _prepare_causal_data_request(self, client_id, key, consistency):
+    def _prepare_causal_data_request(self, client_id, keys, consistency):
         request = CausalRequest()
         request.consistency = consistency
         request.id = str(client_id)
 
         tuples = []
-
-        ct = request.tuples.add()
-        ct.key = key
-        tuples.append(ct)
+        for key in keys:
+            ct = request.tuples.add()
+            ct.key = key
+            tuples.append(ct)
 
         return request, tuples
 
