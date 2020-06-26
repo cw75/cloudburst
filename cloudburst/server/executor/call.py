@@ -75,10 +75,12 @@ def exec_function(exec_socket, kvs, user_library, cache, function_cache):
 
     if call.consistency == NORMAL:
         result = serializer.dump_lattice(result)
+        logging.info('normal mode: putting key %s' % call.response_key)
         succeed = kvs.put(call.response_key, result)
     else:
         result = serializer.dump_lattice(result, MultiKeyCausalLattice,
                                          causal_dependencies=dependencies)
+        logging.info('causal mode: putting key %s' % call.response_key)
         succeed = kvs.causal_put(call.response_key, result, '0')
 
     if not succeed:

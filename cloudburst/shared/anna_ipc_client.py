@@ -184,13 +184,13 @@ class AnnaIpcClient(BaseAnnaClient):
 
         return result
 
-    def causal_put(self, key, mk_causal_value, client_id):
+    def causal_put(self, key, mk_causal_lattice, client_id):
         request, tuples = self._prepare_causal_data_request(client_id, key,
                                                             MULTI)
 
         # We can assume this is tuples[0] because we only support one put
         # operation at a time.
-        tuples[0].payload, _ = self._serialize(mk_causal_value)
+        tuples[0].payload, _ = self._serialize(mk_causal_lattice)
 
         request.response_address = self.put_response_address
         self.put_request_socket.send(request.SerializeToString())
@@ -210,16 +210,16 @@ class AnnaIpcClient(BaseAnnaClient):
         else:
             return True
 
-    def _prepare_causal_data_request(self, client_id, keys, consistency):
+    def _prepare_causal_data_request(self, client_id, key, consistency):
         request = CausalRequest()
         request.consistency = consistency
         request.id = str(client_id)
 
         tuples = []
-        for key in keys:
-            ct = request.tuples.add()
-            ct.key = key
-            tuples.append(ct)
+
+        ct = request.tuples.add()
+        ct.key = key
+        tuples.append(ct)
 
         return request, tuples
 
