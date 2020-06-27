@@ -93,7 +93,7 @@ def run(cloudburst_client, num_requests, create, sckt):
             user_tweets = np.random.choice(tweets, size=3, replace=False)
             parents = []
             for tweet in user_tweets:
-                tid = str(uuid.uuid4())
+                tid = str(uuid.uuid1())
                 parents.append(tid)
                 tids.add(serializer.dump(tid))
                 vc = VectorClock({uid : 1}, True)
@@ -103,7 +103,7 @@ def run(cloudburst_client, num_requests, create, sckt):
                 kvs.put(tid, mkl)
             reply_uids = np.random.choice(others, size=2, replace=False)
             for j, reply_uid in enumerate(reply_uids):
-                tid = str(uuid.uuid4())
+                tid = str(uuid.uuid1())
                 tids.add(serializer.dump(tid))
                 vc = VectorClock({reply_uid : 1}, True)
                 dep_vc = VectorClock({uid : 1}, True)

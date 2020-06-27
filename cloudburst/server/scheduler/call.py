@@ -38,7 +38,7 @@ def call_function(func_call_socket, pusher_cache, policy):
     # If there is no response key set for this request, we generate a random
     # UUID.
     if not call.response_key:
-        call.response_key = str(uuid.uuid4())
+        call.response_key = str(uuid.uuid1())
 
     # Filter the arguments for CloudburstReferences, and use the policy engine to
     # pick a node for this request.
@@ -76,7 +76,7 @@ def call_dag(call, pusher_cache, dags, policy, request_id=None):
     if request_id:
         schedule.id = request_id
     else:
-        schedule.id = str(uuid.uuid4())
+        schedule.id = str(uuid.uuid1())
 
     if call.continuation:
         schedule.continuation.CopyFrom(call.continuation)
