@@ -63,7 +63,7 @@ def run(cloudburst_client, num_requests, create, sckt):
             sys.exit(1)
 
         ''' TEST REGISTERED FUNCTIONS '''
-        result = cloud_tweet('000').get()
+        result = cloud_tweet('000').get()[0]
         if result == 'read 000 no extra dependency':
             logging.info('Successfully tested function!')
         else:
@@ -145,6 +145,7 @@ def run(cloudburst_client, num_requests, create, sckt):
             arg_map = {'tweet': refs}
             start = time.time()
             if random.random() < 0.1:
+                logging.info('post')
                 cb_future = cloudburst_client.call_dag(dag_name, arg_map, False, MULTI, uid)
                 result_id = cb_future.obj_id
                 result = cb_future.get()
@@ -153,6 +154,7 @@ def run(cloudburst_client, num_requests, create, sckt):
 
                 kvs.put(target_uid, SetLattice({serializer.dump(result_id),}))
             else:
+                logging.info('read')
                 result = cloudburst_client.call_dag(dag_name, arg_map, True, MULTI)
                 logging.info(result)
                 end = time.time()
