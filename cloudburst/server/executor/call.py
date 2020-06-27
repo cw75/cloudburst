@@ -237,6 +237,8 @@ def _resolve_ref_causal(refs, kvs, schedule, key_version_locations,
         transitive_dep_map = kv_pairs[key].dependencies.reveal()
         for transitive_dep_key in transitive_dep_map:
             if transitive_dep_key in dependencies:
+                print('type of former is ' + type(dependencies[transitive_dep_key]).__name__)
+                print('type of latter is ' + type(transitive_dep_map[transitive_dep_key]).__name__)
                 dependencies[transitive_dep_key].merge(transitive_dep_map[transitive_dep_key])
             else:
                 dependencies[transitive_dep_key] = transitive_dep_map[transitive_dep_key]
