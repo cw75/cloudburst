@@ -418,7 +418,6 @@ def _exec_dag_function_causal(pusher_cache, kvs, triggers, function, schedule,
 
     result = _exec_func_causal(kvs, function, fargs, user_lib, schedule,
                                key_version_locations, dependencies)
-    logging.info('result is ' + result)
 
     this_ref = None
     for ref in schedule.dag.functions:
@@ -458,33 +457,35 @@ def _exec_dag_function_causal(pusher_cache, kvs, triggers, function, schedule,
         logging.info('DAG %s (ID %s) completed in causal mode; result at %s.' %
                      (schedule.dag.name, schedule.id, schedule.output_key))
 
-        vector_clock = {}
-        okey = schedule.output_key
-        if okey in dependencies:
-            prev_count = 0
-            if schedule.client_id in dependencies[okey]:
-                prev_count = dependencies[okey][schedule.client_id]
+        if output_key in schedule:
+            vector_clock = {}
+            okey = schedule.output_key
+            if okey in dependencies:
+                prev_count = 0
+                if schedule.client_id in dependencies[okey]:
+                    prev_count = dependencies[okey][schedule.client_id]
 
-            dependencies[okey].update(schedule.client_id, prev_count + 1)
-            dependencies[okey].serialize(vector_clock)
-            del dependencies[okey]
-        else:
-            vector_clock = {schedule.client_id: 1}
+                dependencies[okey].update(schedule.client_id, prev_count + 1)
+                dependencies[okey].serialize(vector_clock)
+                del dependencies[okey]
+            else:
+                vector_clock = {schedule.client_id: 1}
 
-        # Serialize result into a MultiKeyCausalLattice.
-        vector_clock = VectorClock(vector_clock, True)
-        result = serializer.dump(result)
-        dependencies = MapLattice(dependencies)
-        lattice = MultiKeyCausalLattice(vector_clock, dependencies,
-                                        SetLattice({result}))
+            # Serialize result into a MultiKeyCausalLattice.
+            vector_clock = VectorClock(vector_clock, True)
+            result = serializer.dump(result)
+            dependencies = MapLattice(dependencies)
+            lattice = MultiKeyCausalLattice(vector_clock, dependencies,
+                                            SetLattice({result}))
 
-        logging.info('invoking causal put')
-        succeed = kvs.causal_put(schedule.output_key,
-                                 lattice, schedule.client_id)
-        logging.info('success? ' + succeed)
-        while not succeed:
             succeed = kvs.causal_put(schedule.output_key,
-                                     lattice, schedule.client_id)
+                                 lattice, schedule.client_id)
+            while not succeed:
+                succeed = kvs.causal_put(schedule.output_key,
+                                        lattice, schedule.client_id)
+        else:
+            sckt = pusher_cache.get(schedule.response_address)
+            sckt.send(serializer.dump(result))
 
         # Issues requests to all upstream caches for this particular request
         # and asks them to garbage collect pinned versions stored for the
