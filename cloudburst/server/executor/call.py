@@ -158,6 +158,7 @@ def _run_function(func, refs, args, user_lib):
         dep_dict = {}
         for key in refs:
             if key not in ref_keys:
+                print('extra dep key is %s' % key)
                 dep_dict[key] = refs[key]
         func_args += (dep_dict,)
 
