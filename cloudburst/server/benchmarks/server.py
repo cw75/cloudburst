@@ -25,6 +25,7 @@ from cloudburst.server.benchmarks import (
     mobilenet,
     predserving,
     scaling,
+    twitter,
     utils
 )
 import cloudburst.server.utils as sutils
@@ -82,6 +83,8 @@ def run_bench(bname, num_requests, cloudburst, kvs, sckt, create=False):
     elif bname == 'scaling':
         total, scheduler, kvs, retries = scaling.run(cloudburst, num_requests,
                                                      sckt, create)
+    elif bname == 'twitter':
+        total, scheduler, kvs, retries = twitter.run(cloudburst, num_requests, create, sckt)
     else:
         logging.info('Unknown benchmark type: %s!' % (bname))
         sckt.send(b'END')
