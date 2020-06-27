@@ -153,6 +153,9 @@ def run(cloudburst_client, num_requests, create, sckt):
                 logging.info(result)
                 end = time.time()
 
+                epoch_total.append(end - start)
+                total_time.append(end - start)
+
                 kvs.put(target_uid, SetLattice({serializer.dump(result_id),}))
             else:
                 logging.info('read')
@@ -160,13 +163,16 @@ def run(cloudburst_client, num_requests, create, sckt):
                 logging.info(result)
                 end = time.time()
 
-            epoch_total.append(end - start)
-            total_time.append(end - start)
+                if result:
+                    epoch_total.append(end - start)
+                    total_time.append(end - start)
 
             log_end = time.time()
             if (log_end - log_start) > 5:
+                throughput = len(epoch_total) / 5
                 if sckt:
-                    sckt.send(cp.dumps(epoch_total))
+                    sckt.send(cp.dumps((throughput, epoch_total)))
+                logging.info('EPOCH %d THROUGHPUT: %.2f' % (log_epoch, throughput))
                 utils.print_latency_stats(epoch_total, 'EPOCH %d E2E' %
                                           (log_epoch), True)
 

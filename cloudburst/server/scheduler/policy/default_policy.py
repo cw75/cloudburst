@@ -418,7 +418,7 @@ class DefaultCloudburstSchedulerPolicy(BaseCloudburstSchedulerPolicy):
         for executor in remove_set:
             del self.backoff[executor]
 
-        executors = set(map(lambda status: status.ip,
+        '''executors = set(map(lambda status: status.ip,
                             self.thread_statuses.values()))
 
         # Update the sets of keys that are being cached at each IP address.
@@ -441,7 +441,7 @@ class DefaultCloudburstSchedulerPolicy(BaseCloudburstSchedulerPolicy):
                 if key not in self.key_locations:
                     self.key_locations[key] = []
 
-                self.key_locations[key].append(ip)
+                self.key_locations[key].append(ip)'''
 
     def update_function_locations(self, new_locations):
         for location in new_locations:

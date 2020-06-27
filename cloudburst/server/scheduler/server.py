@@ -347,4 +347,4 @@ if __name__ == '__main__':
     sched_conf = conf['scheduler']
 
     scheduler(conf['ip'], conf['mgmt_ip'], sched_conf['routing_address'],
-              'locality')
+              'random')
