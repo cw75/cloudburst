@@ -229,6 +229,8 @@ def _resolve_ref_causal(refs, kvs, schedule, key_version_locations,
 
     for key in kv_pairs:
         if key in dependencies:
+            print('type of former is ' + type(dependencies[key]).__name__)
+            print('type of latter is ' + type(kv_pairs[key].vector_clock).__name__)
             dependencies[key].merge(kv_pairs[key].vector_clock)
         else:
             dependencies[key] = kv_pairs[key].vector_clock
