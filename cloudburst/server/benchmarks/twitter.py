@@ -87,7 +87,8 @@ def run(cloudburst_client, num_requests, create, sckt):
         for i, uid in enumerate(users):
             if i % 100 == 0:
                 logging.info(uid)
-            others = users.copy().remove(uid)
+            others = users.copy()
+            others.remove(uid)
             tids = set()
             user_tweets = np.random.choice(tweets, size=3, replace=False)
             parents = []
