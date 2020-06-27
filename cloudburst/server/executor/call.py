@@ -457,7 +457,7 @@ def _exec_dag_function_causal(pusher_cache, kvs, triggers, function, schedule,
         logging.info('DAG %s (ID %s) completed in causal mode; result at %s.' %
                      (schedule.dag.name, schedule.id, schedule.output_key))
 
-        if output_key in schedule:
+        if schedule.output_key:
             vector_clock = {}
             okey = schedule.output_key
             if okey in dependencies:
