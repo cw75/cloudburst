@@ -44,13 +44,20 @@ def run(cloudburst_client, num_requests, create, sckt):
     if create:
         print('create')
         ''' DEFINE AND REGISTER FUNCTIONS '''
-        def tweet(_, a, dep=None):
+        '''def tweet(_, a, dep=None):
             result = 'read ' + a
             if dep:
                 for key in dep:
                     result += ' plus dep key: ' + key + ' dep val: ' + dep[key]
             else:
                 result += ' no extra dependency'
+            return result'''
+        def tweet(_, a, dep=None):
+            result = 'read ' + a
+            if dep:
+                result += ' yes'
+            else:
+                result += ' no'
             return result
 
         cloud_tweet = cloudburst_client.register(tweet, 'tweet')
@@ -134,6 +141,8 @@ def run(cloudburst_client, num_requests, create, sckt):
         epoch_total = []
 
         for i in range(num_requests):
+            if i % 100 == 0:
+                logging.info('request %s' % i)
             uid = np.random.choice(users, size=1, replace=False).tolist()[0]
             followers = follow[uid]
             target_uid = np.random.choice(followers, size=1, replace=False).tolist()[0]
@@ -146,11 +155,11 @@ def run(cloudburst_client, num_requests, create, sckt):
             arg_map = {'tweet': refs}
             start = time.time()
             if random.random() < 0.1:
-                logging.info('post')
+                #logging.info('post')
                 cb_future = cloudburst_client.call_dag(dag_name, arg_map, False, MULTI, None, uid)
                 result_id = cb_future.obj_id
                 result = cb_future.get()
-                logging.info(result)
+                #logging.info(result)
                 end = time.time()
 
                 epoch_total.append(end - start)
@@ -158,9 +167,9 @@ def run(cloudburst_client, num_requests, create, sckt):
 
                 kvs.put(target_uid, SetLattice({serializer.dump(result_id),}))
             else:
-                logging.info('read')
+                #logging.info('read')
                 result = cloudburst_client.call_dag(dag_name, arg_map, True, MULTI)
-                logging.info(result)
+                #logging.info(result)
                 end = time.time()
 
                 if result:
