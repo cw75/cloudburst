@@ -42,6 +42,7 @@ def run(cloudburst_client, num_requests, create, sckt):
     kvs = cloudburst_client.kvs_client
 
     if create:
+        print('create')
         ''' DEFINE AND REGISTER FUNCTIONS '''
         def tweet(_, a, dep=None):
             result = 'read ' + a
@@ -58,6 +59,7 @@ def run(cloudburst_client, num_requests, create, sckt):
             logging.info('Successfully registered the dot function.')
         else:
             logging.info('Error registering function.')
+            print('Error registering function.')
             sys.exit(1)
 
         ''' TEST REGISTERED FUNCTIONS '''
@@ -66,6 +68,7 @@ def run(cloudburst_client, num_requests, create, sckt):
             logging.info('Successfully tested function!')
         else:
             logging.info('Unexpected result %s.' % result)
+            print('Unexpected result %s.' % result)
             sys.exit(1)
         ''' CREATE DAG '''
         functions = ['tweet']
