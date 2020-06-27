@@ -228,9 +228,8 @@ def _resolve_ref_causal(refs, kvs, schedule, key_version_locations,
             key_version_locations[address].extend(versions)
 
     for key in kv_pairs:
+        print('dep key is %s' % key)
         if key in dependencies:
-            print('type of former is ' + type(dependencies[key]).__name__)
-            print('type of latter is ' + type(kv_pairs[key].vector_clock).__name__)
             dependencies[key].merge(kv_pairs[key].vector_clock)
         else:
             dependencies[key] = kv_pairs[key].vector_clock
@@ -238,9 +237,8 @@ def _resolve_ref_causal(refs, kvs, schedule, key_version_locations,
         # add transitive dependencies
         transitive_dep_map = kv_pairs[key].dependencies.reveal()
         for transitive_dep_key in transitive_dep_map:
+            print('transitive dep key is %s' % transitive_dep_key)
             if transitive_dep_key in dependencies:
-                print('type of former is ' + type(dependencies[transitive_dep_key]).__name__)
-                print('type of latter is ' + type(transitive_dep_map[transitive_dep_key]).__name__)
                 dependencies[transitive_dep_key].merge(transitive_dep_map[transitive_dep_key])
             else:
                 dependencies[transitive_dep_key] = transitive_dep_map[transitive_dep_key]
@@ -254,6 +252,7 @@ def _resolve_ref_causal(refs, kvs, schedule, key_version_locations,
                     isinstance(kv_pairs[key], MultiKeyCausalLattice)):
                 # If there are multiple values, we choose the first one listed
                 # at random.
+                print('ref key is %s' % key)
                 kv_pairs[key] = serializer.load_lattice(kv_pairs[key])[0]
             else:
                 raise ValueError(('Invalid lattice type %s encountered when' +
@@ -485,6 +484,8 @@ def _exec_dag_function_causal(pusher_cache, kvs, triggers, function, schedule,
                      (schedule.dag.name, schedule.id, schedule.output_key))
 
         if schedule.output_key:
+            print('output key is %s' % schedule.output_key)
+            print('dependency keys are %s' % dependencies.keys())
             vector_clock = {}
             okey = schedule.output_key
             if okey in dependencies:
