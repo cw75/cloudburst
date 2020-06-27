@@ -64,7 +64,7 @@ def run(cloudburst_client, num_requests, create, sckt):
 
         ''' TEST REGISTERED FUNCTIONS '''
         result = cloud_tweet('000').get()
-        if result == 'read 000':
+        if result == 'read 000 no extra dependency':
             logging.info('Successfully tested function!')
         else:
             logging.info('Unexpected result %s.' % result)
