@@ -147,7 +147,7 @@ def run(cloudburst_client, num_requests, create, sckt):
             start = time.time()
             if random.random() < 0.1:
                 logging.info('post')
-                cb_future = cloudburst_client.call_dag(dag_name, arg_map, False, MULTI, uid)
+                cb_future = cloudburst_client.call_dag(dag_name, arg_map, False, MULTI, None, uid)
                 result_id = cb_future.obj_id
                 result = cb_future.get()
                 logging.info(result)
