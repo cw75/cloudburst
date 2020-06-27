@@ -196,22 +196,22 @@ def _resolve_ref_causal(refs, kvs, schedule, key_version_locations,
                         dependencies):
     if schedule:
         future_read_set = _compute_children_read_set(schedule)
-        client_id = schedule.client_id
+        schedule_id = schedule.id
         consistency = schedule.consistency
     else:
         future_read_set = set()
-        client_id = 0
+        schedule_id = 0
         consistency = SINGLE
 
     keys = [ref.key for ref in refs]
     (address, versions), kv_pairs = kvs.causal_get(keys, future_read_set,
                                                    key_version_locations,
-                                                   consistency, client_id)
+                                                   consistency, schedule_id)
 
     while None in kv_pairs.values():
         (address, versions), kv_pairs = kvs.causal_get(keys, future_read_set,
                                                        key_version_locations,
-                                                       consistency, client_id)
+                                                       consistency, schedule_id)
     if address is not None:
         if address not in key_version_locations:
             key_version_locations[address] = versions
@@ -479,10 +479,10 @@ def _exec_dag_function_causal(pusher_cache, kvs, triggers, function, schedule,
                                             SetLattice({result}))
 
             succeed = kvs.causal_put(schedule.output_key,
-                                 lattice, schedule.client_id)
+                                 lattice, schedule.id)
             while not succeed:
                 succeed = kvs.causal_put(schedule.output_key,
-                                        lattice, schedule.client_id)
+                                        lattice, schedule.id)
         else:
             sckt = pusher_cache.get(schedule.response_address)
             sckt.send(serializer.dump(result))

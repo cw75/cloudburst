@@ -99,11 +99,11 @@ class AnnaIpcClient(BaseAnnaClient):
             return kv_pairs
 
     def causal_get(self, keys, future_read_set=set(), key_version_locations={},
-                   consistency=SINGLE, client_id=0):
+                   consistency=SINGLE, schedule_id=0):
         if type(keys) != list:
             keys = list(keys)
 
-        request, _ = self._prepare_causal_data_request(client_id, keys,
+        request, _ = self._prepare_causal_data_request(schedule_id, keys,
                                                        consistency)
 
         for addr in key_version_locations:
@@ -184,10 +184,10 @@ class AnnaIpcClient(BaseAnnaClient):
 
         return result
 
-    def causal_put(self, key, mk_causal_lattice, client_id):
+    def causal_put(self, key, mk_causal_lattice, schedule_id):
         if type(key) != list:
             key = [key]
-        request, tuples = self._prepare_causal_data_request(client_id, key,
+        request, tuples = self._prepare_causal_data_request(schedule_id, key,
                                                             MULTI)
 
         # We can assume this is tuples[0] because we only support one put
@@ -212,10 +212,10 @@ class AnnaIpcClient(BaseAnnaClient):
         else:
             return True
 
-    def _prepare_causal_data_request(self, client_id, keys, consistency):
+    def _prepare_causal_data_request(self, schedule_id, keys, consistency):
         request = CausalRequest()
         request.consistency = consistency
-        request.id = str(client_id)
+        request.id = str(schedule_id)
 
         tuples = []
         for key in keys:
