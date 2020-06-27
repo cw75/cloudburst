@@ -481,22 +481,26 @@ def _exec_dag_function_causal(pusher_cache, kvs, triggers, function, schedule,
             sckt.send(new_trigger.SerializeToString())
 
     if is_sink:
-        logging.info('DAG %s (ID %s) completed in causal mode; result at %s.' %
-                     (schedule.dag.name, schedule.id, schedule.output_key))
-
-        if schedule.output_key:
-            print('output key is %s' % schedule.output_key)
+        if schedule.response_address:
+            logging.info('DAG %s (ID %s) completed in causal mode; direct response mode.' %
+                         (schedule.dag.name, schedule.id))
+            sckt = pusher_cache.get(schedule.response_address)
+            sckt.send(serializer.dump(result))
+        else:
+            output_key = schedule.output_key if schedule.output_key else schedule.id
+            logging.info('DAG %s (ID %s) completed in causal mode; result at %s.' %
+                         (schedule.dag.name, schedule.id, output_key))
+            print('output key is %s' % output_key)
             print('dependency keys are %s' % dependencies.keys())
             vector_clock = {}
-            okey = schedule.output_key
-            if okey in dependencies:
+            if output_key in dependencies:
                 prev_count = 0
-                if schedule.client_id in dependencies[okey]:
-                    prev_count = dependencies[okey][schedule.client_id]
+                if schedule.client_id in dependencies[output_key]:
+                    prev_count = dependencies[output_key][schedule.client_id]
 
-                dependencies[okey].update(schedule.client_id, prev_count + 1)
-                dependencies[okey].serialize(vector_clock)
-                del dependencies[okey]
+                dependencies[output_key].update(schedule.client_id, prev_count + 1)
+                dependencies[output_key].serialize(vector_clock)
+                del dependencies[output_key]
             else:
                 vector_clock = {schedule.client_id: 1}
 
@@ -507,14 +511,9 @@ def _exec_dag_function_causal(pusher_cache, kvs, triggers, function, schedule,
             lattice = MultiKeyCausalLattice(vector_clock, dependencies,
                                             SetLattice({result}))
 
-            succeed = kvs.causal_put(schedule.output_key,
-                                 lattice, schedule.id)
+            succeed = kvs.causal_put(output_key, lattice, schedule.id)
             while not succeed:
-                succeed = kvs.causal_put(schedule.output_key,
-                                        lattice, schedule.id)
-        else:
-            sckt = pusher_cache.get(schedule.response_address)
-            sckt.send(serializer.dump(result))
+                succeed = kvs.causal_put(output_key, lattice, schedule.id)
 
         # Issues requests to all upstream caches for this particular request
         # and asks them to garbage collect pinned versions stored for the
