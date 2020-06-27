@@ -135,12 +135,14 @@ def _run_function(func, refs, args, user_lib):
 
     # If any of the arguments are references, we insert the resolved reference
     # instead of the raw value.
+    ref_keys = []
     for arg in args:
         # The standard non-batching approach to resolving references. We simply
         # take the KV-pairs and swap in the actual values for the references.
         if type(arg) != list:
             if isinstance(arg, CloudburstReference):
                 func_args += (refs[arg.key],)
+                ref_keys.append(arg.key)
             else:
                 func_args += (arg,)
         else:
@@ -151,6 +153,13 @@ def _run_function(func, refs, args, user_lib):
                     arg[idx] = refs[val.key]
 
             func_args += (arg,)
+
+    if len(ref_keys) != len(refs):
+        dep_dict = {}
+        for key in refs:
+            if key not in ref_keys:
+                dep_dict[key] = refs[key]
+        func_args += (dep_dict,)
 
     return func(*func_args)
 
@@ -224,6 +233,15 @@ def _resolve_ref_causal(refs, kvs, schedule, key_version_locations,
         else:
             dependencies[key] = kv_pairs[key].vector_clock
 
+        # add transitive dependencies
+        transitive_dep_map = kv_pairs[key].dependencies.reveal()
+        for transitive_dep_key in transitive_dep_map:
+            if transitive_dep_key in dependencies:
+                dependencies[transitive_dep_key].merge(transitive_dep_map[transitive_dep_key])
+            else:
+                dependencies[transitive_dep_key] = transitive_dep_map[transitive_dep_key]
+
+
     for ref in refs:
         key = ref.key
         if ref.deserialize:
@@ -239,6 +257,11 @@ def _resolve_ref_causal(refs, kvs, schedule, key_version_locations,
                                  str(type(kv_pairs[key])))
         else:
             kv_pairs[key] = kv_pairs[key].reveal()
+
+    # also deserialize dependency keys
+    for key in kv_pairs:
+        if key not in keys:
+            kv_pairs[key] = serializer.load_lattice(kv_pairs[key])[0]
 
     return kv_pairs
 
