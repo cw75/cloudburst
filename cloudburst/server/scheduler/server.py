@@ -235,16 +235,20 @@ def scheduler(ip, mgmt_ip, route_addr, policy_type):
 
         if sched_update_socket in socks and socks[sched_update_socket] == \
                 zmq.POLLIN:
+            logging.info('got scheduler update')
             status = SchedulerStatus()
             status.ParseFromString(sched_update_socket.recv())
 
             # Retrieve any DAGs that some other scheduler knows about that we
             # do not yet know about.
             for dname in status.dags:
+                logging.info('dag name is %s' % dname)
                 if dname not in dags:
+                    logging.info('getting dag from kvs')
                     payload = kvs.get(dname)
                     while None in payload:
                         payload = kvs.get(dname)
+                    logging.info('done')
 
                     dag = Dag()
                     dag.ParseFromString(payload[dname].reveal())
@@ -306,6 +310,7 @@ def scheduler(ip, mgmt_ip, route_addr, policy_type):
 
             for sched_ip in schedulers:
                 if sched_ip != ip:
+                    logging.info('sending status to scheduler %s' % sched_ip)
                     sckt = pusher_cache.get(
                         sched_utils.get_scheduler_update_address
                         (sched_ip))
