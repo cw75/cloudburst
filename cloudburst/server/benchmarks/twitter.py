@@ -69,6 +69,9 @@ def run(cloudburst_client, num_requests, create, sckt):
             print('Error registering function.')
             sys.exit(1)
 
+        logging.info('Sleep for 10 sec.')
+        time.sleep(10)
+
         ''' TEST REGISTERED FUNCTIONS '''
         result = cloud_tweet('000').get()[0]
         if result == 'read 000 no':
