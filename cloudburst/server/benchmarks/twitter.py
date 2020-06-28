@@ -73,6 +73,7 @@ def run(cloudburst_client, num_requests, create, sckt):
         time.sleep(10)
 
         ''' TEST REGISTERED FUNCTIONS '''
+        logging.info('Testing function...')
         result = cloud_tweet('000').get()[0]
         if result == 'read 000 no':
             logging.info('Successfully tested function!')
