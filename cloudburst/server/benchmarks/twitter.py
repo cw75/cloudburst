@@ -158,7 +158,7 @@ def run(cloudburst_client, num_requests, create, sckt):
             refs.append(CloudburstReference(tid, True))
             arg_map = {'tweet': refs}
             start = time.time()
-            if random.random() < 0.1:
+            if random.random() < 0:
                 #logging.info('post')
                 cb_future = cloudburst_client.call_dag(dag_name, arg_map, False, MULTI, None, uid)
                 result_id = cb_future.obj_id
