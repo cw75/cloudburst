@@ -214,6 +214,7 @@ def _resolve_ref_causal(refs, kvs, schedule, key_version_locations,
         consistency = SINGLE
 
     keys = [ref.key for ref in refs]
+    start = time.time()
     (address, versions), kv_pairs = kvs.causal_get(keys, future_read_set,
                                                    key_version_locations,
                                                    consistency, schedule_id)
@@ -222,6 +223,8 @@ def _resolve_ref_causal(refs, kvs, schedule, key_version_locations,
         (address, versions), kv_pairs = kvs.causal_get(keys, future_read_set,
                                                        key_version_locations,
                                                        consistency, schedule_id)
+    end = time.time()
+    logging.info('causal get time is %s' % (end - start))
     if address is not None:
         if address not in key_version_locations:
             key_version_locations[address] = versions
@@ -511,9 +514,12 @@ def _exec_dag_function_causal(pusher_cache, kvs, triggers, function, schedule,
             lattice = MultiKeyCausalLattice(vector_clock, dependencies,
                                             SetLattice({result}))
 
+            start = time.time()
             succeed = kvs.causal_put(output_key, lattice, schedule.id)
             while not succeed:
                 succeed = kvs.causal_put(output_key, lattice, schedule.id)
+            end = time.time()
+            logging.info('causal put time is %s' % (end - start))
 
         # Issues requests to all upstream caches for this particular request
         # and asks them to garbage collect pinned versions stored for the
