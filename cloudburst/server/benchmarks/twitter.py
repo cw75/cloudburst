@@ -60,7 +60,10 @@ def run(cloudburst_client, num_requests, create, sckt):
                 result += ' no'
             return result'''
         def tweet(_, a, dep=None):
-            result = 'read ' + a
+            if type(a) == tuple:
+                result = 'read ' + a[0]
+            else:
+                result = 'read ' + a
             violation = False
             if dep:
                 result += ' yes'
