@@ -283,6 +283,7 @@ def scheduler(ip, mgmt_ip, route_addr, policy_type):
         end = time.time()
 
         if end - start > METADATA_THRESHOLD:
+            logging.info('metadata threshold reached')
             # Update the scheduler policy-related metadata.
             policy.update()
 
