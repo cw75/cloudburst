@@ -261,14 +261,14 @@ class CloudburstConnection():
         if dry_run:
             return dc
 
-        start = time.time()
+        #start = time.time()
         self.dag_call_sock.send(dc.SerializeToString())
 
         r = GenericResponse()
         r.ParseFromString(self.dag_call_sock.recv())
-        end = time.time()
+        #end = time.time()
 
-        logging.info('scheduler response took %s seconds' % (end - start))
+        #logging.info('scheduler response took %s seconds' % (end - start))
 
         if r.success:
             if direct_response:

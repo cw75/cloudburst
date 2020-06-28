@@ -196,7 +196,7 @@ def executor(ip, mgmt_ip, schedulers, thread_id):
 
         if dag_queue_socket in socks and socks[dag_queue_socket] == zmq.POLLIN:
             work_start = time.time()
-            start = time.time()
+            #start = time.time()
             # In order to effectively support batching, we have to make sure we
             # dequeue lots of schedules in addition to lots of triggers. Right
             # now, we're not going to worry about supporting batching here,
@@ -255,8 +255,8 @@ def executor(ip, mgmt_ip, schedulers, thread_id):
                                                 [schedule], user_library,
                                                 dag_runtimes, cache, schedulers,
                                                 batching)[0]
-                    end = time.time()
-                    logging.info('function took %s seconds' % (end - start))
+                    #end = time.time()
+                    #logging.info('function took %s seconds' % (end - start))
                     user_library.close()
 
                     del received_triggers[trkey]
@@ -276,7 +276,7 @@ def executor(ip, mgmt_ip, schedulers, thread_id):
 
         if dag_exec_socket in socks and socks[dag_exec_socket] == zmq.POLLIN:
             work_start = time.time()
-            start = time.time()
+            #start = time.time()
             # How many messages to dequeue -- BATCH_SIZE_MAX or 1 depending on
             # the function configuration.
             if batching:
@@ -368,8 +368,8 @@ def executor(ip, mgmt_ip, schedulers, thread_id):
                                               schedules, user_library,
                                               dag_runtimes, cache,
                                               schedulers, batching)
-                end = time.time()
-                logging.info('function took %s seconds' % (end - start))
+                #end = time.time()
+                #logging.info('function took %s seconds' % (end - start))
                 user_library.close()
                 del received_triggers[key]
 

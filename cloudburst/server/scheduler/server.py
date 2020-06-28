@@ -181,7 +181,7 @@ def scheduler(ip, mgmt_ip, route_addr, policy_type):
                        call_frequency)
 
         if dag_call_socket in socks and socks[dag_call_socket] == zmq.POLLIN:
-            call_start = time.time()
+            #call_start = time.time()
             call = DagCall()
             call.ParseFromString(dag_call_socket.recv())
 
@@ -210,8 +210,8 @@ def scheduler(ip, mgmt_ip, route_addr, policy_type):
 
             response = call_dag(call, pusher_cache, dags, policy)
             dag_call_socket.send(response.SerializeToString())
-            call_end = time.time()
-            logging.info('dag call routine took %s seconds' % (call_end - call_start))
+            #call_end = time.time()
+            #logging.info('dag call routine took %s seconds' % (call_end - call_start))
 
         if (dag_delete_socket in socks and socks[dag_delete_socket] ==
                 zmq.POLLIN):
@@ -235,20 +235,20 @@ def scheduler(ip, mgmt_ip, route_addr, policy_type):
 
         if sched_update_socket in socks and socks[sched_update_socket] == \
                 zmq.POLLIN:
-            logging.info('got scheduler update')
+            #logging.info('got scheduler update')
             status = SchedulerStatus()
             status.ParseFromString(sched_update_socket.recv())
 
             # Retrieve any DAGs that some other scheduler knows about that we
             # do not yet know about.
             for dname in status.dags:
-                logging.info('dag name is %s' % dname)
+                #logging.info('dag name is %s' % dname)
                 if dname not in dags:
-                    logging.info('getting dag from kvs')
+                    #logging.info('getting dag from kvs')
                     payload = kvs.get(dname)
                     while None in payload:
                         payload = kvs.get(dname)
-                    logging.info('done')
+                    #logging.info('done')
 
                     dag = Dag()
                     dag.ParseFromString(payload[dname].reveal())
@@ -283,7 +283,7 @@ def scheduler(ip, mgmt_ip, route_addr, policy_type):
         end = time.time()
 
         if end - start > METADATA_THRESHOLD:
-            logging.info('metadata threshold reached')
+            #logging.info('metadata threshold reached')
             # Update the scheduler policy-related metadata.
             policy.update()
 
@@ -299,7 +299,7 @@ def scheduler(ip, mgmt_ip, route_addr, policy_type):
                     logging.info('no schedulers info!')
 
         if end - start > REPORT_THRESHOLD:
-            logging.info('reporting')
+            #logging.info('reporting')
             status = SchedulerStatus()
             for name in dags.keys():
                 status.dags.append(name)
@@ -313,10 +313,10 @@ def scheduler(ip, mgmt_ip, route_addr, policy_type):
 
             msg = status.SerializeToString()
 
-            logging.info('schedulers are %s' % schedulers)
+            #logging.info('schedulers are %s' % schedulers)
             for sched_ip in schedulers:
                 if sched_ip != ip:
-                    logging.info('sending status to scheduler %s' % sched_ip)
+                    #logging.info('sending status to scheduler %s' % sched_ip)
                     sckt = pusher_cache.get(
                         sched_utils.get_scheduler_update_address
                         (sched_ip))
