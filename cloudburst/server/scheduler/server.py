@@ -132,7 +132,7 @@ def scheduler(ip, mgmt_ip, route_addr, policy_type):
 
     if not local:
         management_request_socket = context.socket(zmq.REQ)
-        management_request_socket.setsockopt(zmq.RCVTIMEO, 1000)
+        management_request_socket.setsockopt(zmq.RCVTIMEO, 10000)
         # By setting this flag, zmq matches replies with requests.
         management_request_socket.setsockopt(zmq.REQ_CORRELATE, 1)
         # Relax strict alternation between request and reply.
