@@ -181,6 +181,7 @@ def scheduler(ip, mgmt_ip, route_addr, policy_type):
                        call_frequency)
 
         if dag_call_socket in socks and socks[dag_call_socket] == zmq.POLLIN:
+            start = time.time()
             call = DagCall()
             call.ParseFromString(dag_call_socket.recv())
 
@@ -209,6 +210,8 @@ def scheduler(ip, mgmt_ip, route_addr, policy_type):
 
             response = call_dag(call, pusher_cache, dags, policy)
             dag_call_socket.send(response.SerializeToString())
+            end = time.time()
+            logging.info('dag call routine took %s seconds' % (end - start))
 
         if (dag_delete_socket in socks and socks[dag_delete_socket] ==
                 zmq.POLLIN):

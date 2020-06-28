@@ -158,7 +158,7 @@ def _run_function(func, refs, args, user_lib):
         dep_dict = {}
         for key in refs:
             if key not in ref_keys:
-                print('extra dep key is %s' % key)
+                #print('extra dep key is %s' % key)
                 dep_dict[key] = refs[key]
         func_args += (dep_dict,)
 
@@ -214,7 +214,7 @@ def _resolve_ref_causal(refs, kvs, schedule, key_version_locations,
         consistency = SINGLE
 
     keys = [ref.key for ref in refs]
-    start = time.time()
+    #start = time.time()
     (address, versions), kv_pairs = kvs.causal_get(keys, future_read_set,
                                                    key_version_locations,
                                                    consistency, schedule_id)
@@ -223,8 +223,8 @@ def _resolve_ref_causal(refs, kvs, schedule, key_version_locations,
         (address, versions), kv_pairs = kvs.causal_get(keys, future_read_set,
                                                        key_version_locations,
                                                        consistency, schedule_id)
-    end = time.time()
-    logging.info('causal get time is %s' % (end - start))
+    #end = time.time()
+    #logging.info('causal get time is %s' % (end - start))
     if address is not None:
         if address not in key_version_locations:
             key_version_locations[address] = versions
@@ -232,7 +232,7 @@ def _resolve_ref_causal(refs, kvs, schedule, key_version_locations,
             key_version_locations[address].extend(versions)
 
     for key in kv_pairs:
-        print('dep key is %s' % key)
+        #print('dep key is %s' % key)
         if key in dependencies:
             dependencies[key].merge(kv_pairs[key].vector_clock)
         else:
@@ -241,7 +241,7 @@ def _resolve_ref_causal(refs, kvs, schedule, key_version_locations,
         # add transitive dependencies
         transitive_dep_map = kv_pairs[key].dependencies.reveal()
         for transitive_dep_key in transitive_dep_map:
-            print('transitive dep key is %s' % transitive_dep_key)
+            #print('transitive dep key is %s' % transitive_dep_key)
             if transitive_dep_key in dependencies:
                 dependencies[transitive_dep_key].merge(transitive_dep_map[transitive_dep_key])
             else:
@@ -256,7 +256,7 @@ def _resolve_ref_causal(refs, kvs, schedule, key_version_locations,
                     isinstance(kv_pairs[key], MultiKeyCausalLattice)):
                 # If there are multiple values, we choose the first one listed
                 # at random.
-                print('ref key is %s' % key)
+                #print('ref key is %s' % key)
                 kv_pairs[key] = serializer.load_lattice(kv_pairs[key])[0]
             else:
                 raise ValueError(('Invalid lattice type %s encountered when' +
@@ -485,16 +485,16 @@ def _exec_dag_function_causal(pusher_cache, kvs, triggers, function, schedule,
 
     if is_sink:
         if schedule.response_address:
-            logging.info('DAG %s (ID %s) completed in causal mode; direct response mode.' %
-                         (schedule.dag.name, schedule.id))
+            #logging.info('DAG %s (ID %s) completed in causal mode; direct response mode.' %
+            #             (schedule.dag.name, schedule.id))
             sckt = pusher_cache.get(schedule.response_address)
             sckt.send(serializer.dump(result))
         else:
             output_key = schedule.output_key if schedule.output_key else schedule.id
-            logging.info('DAG %s (ID %s) completed in causal mode; result at %s.' %
-                         (schedule.dag.name, schedule.id, output_key))
-            print('output key is %s' % output_key)
-            print('dependency keys are %s' % dependencies.keys())
+            #logging.info('DAG %s (ID %s) completed in causal mode; result at %s.' %
+            #             (schedule.dag.name, schedule.id, output_key))
+            #print('output key is %s' % output_key)
+            #print('dependency keys are %s' % dependencies.keys())
             vector_clock = {}
             if output_key in dependencies:
                 prev_count = 0
@@ -514,12 +514,12 @@ def _exec_dag_function_causal(pusher_cache, kvs, triggers, function, schedule,
             lattice = MultiKeyCausalLattice(vector_clock, dependencies,
                                             SetLattice({result}))
 
-            start = time.time()
+            #start = time.time()
             succeed = kvs.causal_put(output_key, lattice, schedule.id)
             while not succeed:
                 succeed = kvs.causal_put(output_key, lattice, schedule.id)
-            end = time.time()
-            logging.info('causal put time is %s' % (end - start))
+            #end = time.time()
+            #logging.info('causal put time is %s' % (end - start))
 
         # Issues requests to all upstream caches for this particular request
         # and asks them to garbage collect pinned versions stored for the
@@ -528,6 +528,7 @@ def _exec_dag_function_causal(pusher_cache, kvs, triggers, function, schedule,
             gc_address = utils.get_cache_gc_address(cache_addr)
             sckt = pusher_cache.get(gc_address)
             sckt.send_string(schedule.client_id)
+
 
     return is_sink, [success]
 
