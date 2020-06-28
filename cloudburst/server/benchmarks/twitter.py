@@ -72,7 +72,7 @@ def run(cloudburst_client, num_requests, create, sckt):
         cloud_tweet = cloudburst_client.register(tweet, 'tweet')
 
         if cloud_tweet:
-            logging.info('Successfully registered the dot function.')
+            logging.info('Successfully registered the tweet function.')
         else:
             logging.info('Error registering function.')
             print('Error registering function.')
