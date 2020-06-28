@@ -14,6 +14,7 @@
 
 import logging
 import sys
+import random
 
 import zmq
 
@@ -119,5 +120,10 @@ if __name__ == '__main__':
     conf = sutils.load_conf(conf_file)
     bench_conf = conf['benchmark']
 
-    benchmark(conf['ip'], bench_conf['cloudburst_address'],
+    logging.info('schedulers are: %s' % bench_conf['scheduler_ips'])
+    scheduler = random.choice(bench_conf['scheduler_ips'])
+    logging.info('my scheduler is %s' % scheduler)
+
+
+    benchmark(conf['ip'], scheduler,
               int(bench_conf['thread_id']))
