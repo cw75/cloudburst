@@ -65,6 +65,8 @@ epoch = 1
 epoch_thruput = 0
 epoch_start = time.time()
 
+total_start = time.time()
+
 while end_recv < sent_msgs:
     msg = recv_socket.recv()
 
@@ -96,7 +98,10 @@ while end_recv < sent_msgs:
             epoch_start = time.time()
             epoch += 1
 
-logging.info('*** END ***')
+total_end = time.time()
 
+logging.info('*** END ***')
+throughput = len(total) / (total_end - total_start)
+logging.info('Overall throughput is %.2f' % throughput)
 if len(total) > 0:
     utils.print_latency_stats(total, 'E2E', True)
