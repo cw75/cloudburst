@@ -123,6 +123,7 @@ if __name__ == '__main__':
     logging.info('schedulers are: %s' % bench_conf['scheduler_ips'])
     scheduler = random.choice(bench_conf['scheduler_ips'])
     logging.info('my scheduler is %s' % scheduler)
+    print(scheduler)
 
 
     benchmark(conf['ip'], scheduler,

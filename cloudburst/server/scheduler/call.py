@@ -112,6 +112,7 @@ def call_dag(call, pusher_cache, dags, policy, request_id=None):
 
         result = policy.pick_executor(refs, fref.name, colocated, schedule)
         if result is None:
+            logging.info('no resources!')
             response = GenericResponse()
             response.success = False
             response.error = NO_RESOURCES
