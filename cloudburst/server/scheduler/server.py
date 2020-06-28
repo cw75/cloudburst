@@ -58,8 +58,8 @@ from cloudburst.shared.utils import (
     LIST_PORT
 )
 
-METADATA_THRESHOLD = 5
-REPORT_THRESHOLD = 5
+METADATA_THRESHOLD = 10
+REPORT_THRESHOLD = 10
 
 logging.basicConfig(filename='log_scheduler.txt', level=logging.INFO,
                     format='%(asctime)s %(message)s')
@@ -132,7 +132,7 @@ def scheduler(ip, mgmt_ip, route_addr, policy_type):
 
     if not local:
         management_request_socket = context.socket(zmq.REQ)
-        management_request_socket.setsockopt(zmq.RCVTIMEO, 500)
+        management_request_socket.setsockopt(zmq.RCVTIMEO, 1000)
         # By setting this flag, zmq matches replies with requests.
         management_request_socket.setsockopt(zmq.REQ_CORRELATE, 1)
         # Relax strict alternation between request and reply.

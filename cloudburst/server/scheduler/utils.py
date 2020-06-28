@@ -13,6 +13,7 @@
 #  limitations under the License.
 
 import zmq
+import logging
 
 from anna.lattices import SetLattice
 
@@ -99,6 +100,7 @@ def get_ip_set(management_request_socket, exec_threads=True):
             return set(ips.keys)
     except zmq.ZMQError as e:
         if e.errno == zmq.EAGAIN:
+            logging.info('Scheduler ip request timed out')
             return None
         else:
             raise e
