@@ -52,13 +52,22 @@ def run(cloudburst_client, num_requests, create, sckt):
             else:
                 result += ' no extra dependency'
             return result'''
-        def tweet(_, a, dep=None):
+        '''def tweet(_, a, dep=None):
             result = 'read ' + a
             if dep:
                 result += ' yes'
             else:
                 result += ' no'
-            return result
+            return result'''
+        def tweet(_, a, dep=None):
+            result = 'read ' + a
+            violation = False
+            if dep:
+                result += ' yes'
+                violation = True
+            else:
+                result += ' no'
+            return (result, violation)
 
         cloud_tweet = cloudburst_client.register(tweet, 'tweet')
 
@@ -75,12 +84,13 @@ def run(cloudburst_client, num_requests, create, sckt):
         ''' TEST REGISTERED FUNCTIONS '''
         logging.info('Testing function...')
         result = cloud_tweet('000').get()[0]
-        if result == 'read 000 no':
+        logging.info(result)
+        '''if result == 'read 000 no':
             logging.info('Successfully tested function!')
         else:
             logging.info('Unexpected result %s.' % result)
             print('Unexpected result %s.' % result)
-            sys.exit(1)
+            sys.exit(1)'''
         ''' CREATE DAG '''
         functions = ['tweet']
         connections = []
@@ -144,6 +154,8 @@ def run(cloudburst_client, num_requests, create, sckt):
         log_epoch = 0
         epoch_total = []
 
+        violation = 0
+
         for i in range(num_requests):
             if i % 100 == 0:
                 logging.info('request %s' % i)
@@ -163,6 +175,8 @@ def run(cloudburst_client, num_requests, create, sckt):
                 cb_future = cloudburst_client.call_dag(dag_name, arg_map, False, MULTI, None, uid)
                 result_id = cb_future.obj_id
                 result = cb_future.get()
+                if result[0][1]:
+                    violation += 1
                 #logging.info(result)
                 end = time.time()
 
@@ -173,6 +187,8 @@ def run(cloudburst_client, num_requests, create, sckt):
             else:
                 #logging.info('read')
                 result = cloudburst_client.call_dag(dag_name, arg_map, True, MULTI)
+                if result[1]:
+                    violation += 1
                 #logging.info(result)
                 end = time.time()
 
@@ -184,7 +200,7 @@ def run(cloudburst_client, num_requests, create, sckt):
             if (log_end - log_start) > 5:
                 throughput = len(epoch_total) / 5
                 if sckt:
-                    sckt.send(cp.dumps((throughput, epoch_total)))
+                    sckt.send(cp.dumps((throughput, violation, epoch_total)))
                 logging.info('EPOCH %d THROUGHPUT: %.2f' % (log_epoch, throughput))
                 utils.print_latency_stats(epoch_total, 'EPOCH %d E2E' %
                                           (log_epoch), True)
@@ -192,5 +208,6 @@ def run(cloudburst_client, num_requests, create, sckt):
                 epoch_total.clear()
                 log_epoch += 1
                 log_start = time.time()
+                violation = 0
 
         return total_time, scheduler_time, kvs_time, retries
