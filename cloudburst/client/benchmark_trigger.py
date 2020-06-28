@@ -101,7 +101,7 @@ while end_recv < sent_msgs:
 total_end = time.time()
 
 logging.info('*** END ***')
-throughput = len(total) / (total_end - total_start)
-logging.info('Overall throughput is %.2f' % throughput)
+#throughput = len(total) / (total_end - total_start)
+#logging.info('Overall throughput is %.2f' % throughput)
 if len(total) > 0:
     utils.print_latency_stats(total, 'E2E', True)
