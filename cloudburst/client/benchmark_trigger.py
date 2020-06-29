@@ -63,7 +63,6 @@ end_recv = 0
 epoch_recv = 0
 epoch = 1
 epoch_thruput = 0
-epoch_violation = 0
 epoch_start = time.time()
 
 total_start = time.time()
@@ -78,8 +77,7 @@ while end_recv < sent_msgs:
 
         if type(msg) == tuple:
             epoch_thruput += msg[0]
-            epoch_violation += msg[1]
-            new_tot = msg[2]
+            new_tot = msg[1]
         else:
             new_tot = msg
 
@@ -92,12 +90,10 @@ while end_recv < sent_msgs:
 
             logging.info('\n\n*** EPOCH %d ***' % (epoch))
             logging.info('\tTHROUGHPUT: %.2f' % (epoch_thruput))
-            logging.info('\tVIOLATION: %.2f' % (epoch_violation))
             utils.print_latency_stats(epoch_total, 'E2E', True)
 
             epoch_recv = 0
             epoch_thruput = 0
-            epoch_violation = 0
             epoch_total.clear()
             epoch_start = time.time()
             epoch += 1

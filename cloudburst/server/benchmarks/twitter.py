@@ -52,25 +52,9 @@ def run(cloudburst_client, num_requests, create, sckt):
             else:
                 result += ' no extra dependency'
             return result'''
-        '''def tweet(_, a, dep=None):
+        def tweet(_, a):
             result = 'read ' + a
-            if dep:
-                result += ' yes'
-            else:
-                result += ' no'
-            return result'''
-        def tweet(_, a, dep=None):
-            if type(a) == tuple:
-                result = 'read ' + a[0]
-            else:
-                result = 'read ' + a
-            violation = False
-            if dep:
-                result += ' yes'
-                violation = True
-            else:
-                result += ' no'
-            return (result, violation)
+            return result
 
         cloud_tweet = cloudburst_client.register(tweet, 'tweet')
 
@@ -86,7 +70,7 @@ def run(cloudburst_client, num_requests, create, sckt):
 
         ''' TEST REGISTERED FUNCTIONS '''
         logging.info('Testing function...')
-        result = cloud_tweet('000').get()[0]
+        result = cloud_tweet('000').get()
         logging.info(result)
         '''if result == 'read 000 no':
             logging.info('Successfully tested function!')
@@ -120,21 +104,14 @@ def run(cloudburst_client, num_requests, create, sckt):
                 tid = str(uuid.uuid1())
                 parents.append(tid)
                 tids.add(serializer.dump(tid))
-                vc = VectorClock({uid : 1}, True)
-                dep = MapLattice({})
-                values = SetLattice({serializer.dump(uid + ': ' + tweet),})
-                mkl = MultiKeyCausalLattice(vc, dep, values)
-                kvs.put(tid, mkl)
+                llw = LWWPairLattice(0, serializer.dump(uid + ': ' + tweet))
+                kvs.put(tid, llw)
             reply_uids = np.random.choice(others, size=2, replace=False)
             for j, reply_uid in enumerate(reply_uids):
                 tid = str(uuid.uuid1())
                 tids.add(serializer.dump(tid))
-                vc = VectorClock({reply_uid : 1}, True)
-                dep_vc = VectorClock({uid : 1}, True)
-                dep = MapLattice({parents[j] : dep_vc})
-                values = SetLattice({serializer.dump(reply_uid + ' reply: this is great!'),})
-                mkl = MultiKeyCausalLattice(vc, dep, values)
-                kvs.put(tid, mkl)
+                llw = LWWPairLattice(0, serializer.dump(reply_uid + ' reply: this is great!'))
+                kvs.put(tid, llw)
 
             tids_lattice = SetLattice(tids)
             kvs.put(uid, tids_lattice)
@@ -157,8 +134,6 @@ def run(cloudburst_client, num_requests, create, sckt):
         log_epoch = 0
         epoch_total = []
 
-        violation = 0
-
         for i in range(num_requests):
             if i % 100 == 0:
                 logging.info('request %s' % i)
@@ -175,11 +150,9 @@ def run(cloudburst_client, num_requests, create, sckt):
             start = time.time()
             if random.random() < 0.1:
                 #logging.info('post')
-                cb_future = cloudburst_client.call_dag(dag_name, arg_map, False, MULTI, None, uid)
+                cb_future = cloudburst_client.call_dag(dag_name, arg_map)
                 result_id = cb_future.obj_id
                 result = cb_future.get()
-                if result[0][1]:
-                    violation += 1
                 #logging.info(result)
                 end = time.time()
 
@@ -189,9 +162,7 @@ def run(cloudburst_client, num_requests, create, sckt):
                 kvs.put(target_uid, SetLattice({serializer.dump(result_id),}))
             else:
                 #logging.info('read')
-                result = cloudburst_client.call_dag(dag_name, arg_map, True, MULTI)
-                if result[1]:
-                    violation += 1
+                result = cloudburst_client.call_dag(dag_name, arg_map, True)
                 #logging.info(result)
                 end = time.time()
 
@@ -203,7 +174,7 @@ def run(cloudburst_client, num_requests, create, sckt):
             if (log_end - log_start) > 5:
                 throughput = len(epoch_total) / 5
                 if sckt:
-                    sckt.send(cp.dumps((throughput, violation, epoch_total)))
+                    sckt.send(cp.dumps((throughput, epoch_total)))
                 logging.info('EPOCH %d THROUGHPUT: %.2f' % (log_epoch, throughput))
                 utils.print_latency_stats(epoch_total, 'EPOCH %d E2E' %
                                           (log_epoch), True)
@@ -211,6 +182,5 @@ def run(cloudburst_client, num_requests, create, sckt):
                 epoch_total.clear()
                 log_epoch += 1
                 log_start = time.time()
-                violation = 0
 
         return total_time, scheduler_time, kvs_time, retries
