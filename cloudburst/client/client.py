@@ -317,7 +317,7 @@ class CloudburstConnection():
         lattice = serializer.dump_lattice(value)
         return self.kvs_client.put(key, lattice)
 
-    def exec_func(self, name, args, consistency=SINGLE):
+    def exec_func(self, name, args, consistency=NORMAL):
         call = FunctionCall()
         call.name = name
         call.request_id = self.rid
