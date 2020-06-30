@@ -25,7 +25,7 @@ from cloudburst.server.benchmarks import utils
 from cloudburst.shared.proto.cloudburst_pb2 import CloudburstError, DAG_ALREADY_EXISTS
 from cloudburst.shared.reference import CloudburstReference
 from cloudburst.shared.serializer import Serializer
-from anna.lattices import VectorClock, MapLattice, SetLattice, MultiKeyCausalLattice
+from anna.lattices import VectorClock, MapLattice, SetLattice, MultiKeyCausalLattice, LWWPairLattice
 
 from cloudburst.shared.proto.cloudburst_pb2 import (
     MULTI,
