@@ -137,7 +137,7 @@ def scheduler(ip, mgmt_ip, route_addr):
                              (sutils.SCHED_UPDATE_PORT))
 
     pin_accept_socket = context.socket(zmq.PULL)
-    pin_accept_socket.setsockopt(zmq.RCVTIMEO, 500)
+    pin_accept_socket.setsockopt(zmq.RCVTIMEO, 5000)
     pin_accept_socket.bind(sutils.BIND_ADDR_TEMPLATE %
                            (sutils.PIN_ACCEPT_PORT))
 
