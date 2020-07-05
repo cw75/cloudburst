@@ -184,22 +184,31 @@ def scheduler(ip, mgmt_ip, route_addr):
         socks = dict(poller.poll(timeout=1000))
 
         if connect_socket in socks and socks[connect_socket] == zmq.POLLIN:
+            logging.info('enter connect')
             msg = connect_socket.recv_string()
             connect_socket.send_string(route_addr)
+            logging.info('exit connect')
 
         if (func_create_socket in socks and
                 socks[func_create_socket] == zmq.POLLIN):
+            logging.info('enter create function')
             create_function(func_create_socket, kvs)
+            logging.info('exit create function')
 
         if func_call_socket in socks and socks[func_call_socket] == zmq.POLLIN:
+            logging.info('enter call function')
             call_function(func_call_socket, pusher_cache, policy)
+            logging.info('exit call function')
 
         if (dag_create_socket in socks and socks[dag_create_socket]
                 == zmq.POLLIN):
+            logging.info('enter create dag')
             create_dag(dag_create_socket, pusher_cache, kvs, dags, policy,
                        call_frequency)
+            logging.info('exit create dag')
 
         if dag_call_socket in socks and socks[dag_call_socket] == zmq.POLLIN:
+            logging.info('enter call dag')
             call = DagCall()
             call.ParseFromString(dag_call_socket.recv())
 
@@ -228,12 +237,16 @@ def scheduler(ip, mgmt_ip, route_addr):
 
             response = call_dag(call, pusher_cache, dags, policy)
             dag_call_socket.send(response.SerializeToString())
+            logging.info('exit call dag')
 
         if (dag_delete_socket in socks and socks[dag_delete_socket] ==
                 zmq.POLLIN):
+            logging.info('enter delete dag')
             delete_dag(dag_delete_socket, dags, policy, call_frequency)
+            logging.info('exit delete dag')
 
         if list_socket in socks and socks[list_socket] == zmq.POLLIN:
+            logging.info('enter list')
             msg = list_socket.recv_string()
             prefix = msg if msg else ''
 
@@ -241,16 +254,20 @@ def scheduler(ip, mgmt_ip, route_addr):
             resp.keys.extend(sched_utils.get_func_list(kvs, prefix))
 
             list_socket.send(resp.SerializeToString())
+            logging.info('exit list')
 
         if exec_status_socket in socks and socks[exec_status_socket] == \
                 zmq.POLLIN:
+            logging.info('enter exec status')
             status = ThreadStatus()
             status.ParseFromString(exec_status_socket.recv())
 
             policy.process_status(status)
+            logging.info('exit exec status')
 
         if sched_update_socket in socks and socks[sched_update_socket] == \
                 zmq.POLLIN:
+            logging.info('enter sched update')
             status = SchedulerStatus()
             status.ParseFromString(sched_update_socket.recv())
 
@@ -271,9 +288,11 @@ def scheduler(ip, mgmt_ip, route_addr):
                             call_frequency[fname.name] = 0
 
             policy.update_function_locations(status.function_locations)
+            logging.info('exit sched update')
 
         if continuation_socket in socks and socks[continuation_socket] == \
                 zmq.POLLIN:
+            logging.info('enter continuation')
             continuation = Continuation()
             continuation.ParseFromString(continuation_socket.recv())
 
@@ -288,16 +307,17 @@ def scheduler(ip, mgmt_ip, route_addr):
                 call.function_args[source].values.extend([result])
 
             call_dag(call, pusher_cache, dags, policy, continuation.id)
+            logging.info('exit continuation')
 
         if slack_socket in socks and socks[slack_socket] == zmq.POLLIN:
-            logging.info('received at main loop')
+            logging.info('enter slack')
             msg = slack_socket.recv()
-            logging.info('finish receiving')
+            #logging.info('finish receiving')
             name, event = cp.loads(msg)
             logging.info(name)
             logging.info(event)
             #name, event = cp.loads(slack_socket.recv())
-            logging.info('finish parsing')
+            #logging.info('finish parsing')
 
             if name not in dags:
                 logging.error('Error: slack app not registered as DAG')
@@ -307,26 +327,28 @@ def scheduler(ip, mgmt_ip, route_addr):
             for fname in dag[0].functions:
                 call_frequency[fname.name] += 1
 
-            logging.info('forming DAG object')
+            #logging.info('forming DAG object')
             dc = DagCall()
             dc.name = name
             dc.consistency = NORMAL
 
-            logging.info('getting function')
+            #logging.info('getting function')
             fname = dag[0].functions[0]
             logging.info(fname)
             args = [serializer.dump(event, serialize=False)]
-            logging.info('dumped args')
+            #logging.info('dumped args')
             al = dc.function_args[fname.name]
             al.values.extend(args)
 
-            logging.info('Calling slack app')
+            #logging.info('Calling slack app')
             call_dag(dc, pusher_cache, dags, policy)
+            logging.info('exit slack')
 
         end = time.time()
 
         if end - start > METADATA_THRESHOLD:
             # Update the scheduler policy-related metadata.
+            logging.info('enter metadata')
             policy.update()
 
             # If the management IP is None, that means we arre running in
@@ -336,8 +358,10 @@ def scheduler(ip, mgmt_ip, route_addr):
                 latest_schedulers = sched_utils.get_ip_set(management_request_socket, False)
                 if latest_schedulers:
                     schedulers = latest_schedulers
+            logging.info('exit metadata')
 
         if end - start > REPORT_THRESHOLD:
+            logging.info('enter report')
             status = SchedulerStatus()
             for name in dags.keys():
                 status.dags.append(name)
@@ -385,6 +409,7 @@ def scheduler(ip, mgmt_ip, route_addr):
                 sckt.send(stats.SerializeToString())
 
             start = time.time()
+            logging.info('exit report')
 
 class MyHTTPServer(HTTPServer):
     def __init__(self, *args, **kwargs):
