@@ -314,8 +314,8 @@ def scheduler(ip, mgmt_ip, route_addr):
             msg = slack_socket.recv()
             #logging.info('finish receiving')
             name, event = cp.loads(msg)
-            logging.info(name)
-            logging.info(event)
+            #logging.info(name)
+            #logging.info(event)
             #name, event = cp.loads(slack_socket.recv())
             #logging.info('finish parsing')
 
@@ -443,20 +443,13 @@ class Handler(BaseHTTPRequestHandler):
                 self.wfile.write(b'')
                 app_id = json_obj['api_app_id']
                 event = json_obj['event']
-                if 'channel' in event and 'user' in event and 'ts' in event and 'text' in event:
+                logging.info('sending to main loop')
+                self.server.pusher.send(cp.dumps([app_id, event]))
+                logging.info('sent to main loop')
+                #if 'channel' in event and 'user' in event and 'ts' in event and 'text' in event:
+                    #logging.info('sending to main loop')
                     #self.server.pusher.send(cp.dumps([app_id, event]))
-                    logging.info('sending to main loop')
-                    self.server.pusher.send(cp.dumps([app_id, event]))
-                    logging.info('sent to main loop')
-                    #channel_id = event['channel']
-                    #user_id = event['user']
-                    #text = event['text']
-                    #ts = event['ts']
-
-                    #logging.info('text is ' + text)
-
-                    #response = slack_web_client.reactions_add(channel=channel_id,name='thumbsup',timestamp=ts)
-                    #logging.info(response)
+                    #logging.info('sent to main loop')
         else:
             self.send_response(400)
             self.end_headers()
