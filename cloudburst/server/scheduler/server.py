@@ -20,6 +20,7 @@ import uuid
 import zmq
 
 import hmac
+import hashlib
 
 from anna.client import AnnaTcpClient
 from anna.zmq_util import SocketCache
@@ -450,15 +451,16 @@ class Handler(BaseHTTPRequestHandler):
                 else:
                     secret = slack_credential[app_id]
                     logging.info(secret)
+                    logging.info(type(secret).__name__)
                     timestamp = self.headers['X-Slack-Request-Timestamp']
                     logging.info(timestamp)
                     sig_basestring = 'v0:' + timestamp + ':' + body
                     logging.info(sig_basestring)
-                    my_signature = 'v0=' + hmac.compute_hash_sha256(secret, sig_basestring).hexdigest()
+                    my_signature = 'v0=' + hmac.new(secret, sig_basestring.encode(), hashlib.sha256).hexdigest()
                     logging.info(my_signature)
                     slack_signature = self.headers['X-Slack-Signature']
                     logging.info(slack_signature)
-                    if hmac.compare(my_signature, slack_signature):
+                    if hmac.compare_digest(my_signature, slack_signature):
                         logging.info('authorized!')
                         event = json_obj['event']
                         logging.info('sending to main loop')
