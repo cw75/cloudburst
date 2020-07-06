@@ -81,6 +81,8 @@ context = zmq.Context(1)
 
 serializer = Serializer()
 
+slack_credential = {}
+
 
 def scheduler(ip, mgmt_ip, route_addr):
 
@@ -204,7 +206,7 @@ def scheduler(ip, mgmt_ip, route_addr):
                 == zmq.POLLIN):
             logging.info('enter create dag')
             create_dag(dag_create_socket, pusher_cache, kvs, dags, policy,
-                       call_frequency)
+                       call_frequency, slack_credential)
             logging.info('exit create dag')
 
         if dag_call_socket in socks and socks[dag_call_socket] == zmq.POLLIN:

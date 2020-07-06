@@ -56,7 +56,7 @@ def create_function(func_create_socket, kvs, consistency=NORMAL):
 
 
 def create_dag(dag_create_socket, pusher_cache, kvs, dags, policy,
-               call_frequency, num_replicas=1):
+               call_frequency, slack_credential, num_replicas=1):
     serialized = dag_create_socket.recv()
 
     dag = Dag()
@@ -70,6 +70,9 @@ def create_dag(dag_create_socket, pusher_cache, kvs, dags, policy,
         return
 
     logging.info('Creating DAG %s.' % (dag.name))
+
+    if dag.signing_secret:
+        slack_credential[dag.name] = dag.signing_secret
 
     # We persist the DAG in the KVS, so other schedulers can read the DAG when
     # they hear about it.

@@ -150,7 +150,7 @@ class CloudburstConnection():
             raise RuntimeError(f'Unexpected error while registering function: {resp}.')
 
     def register_dag(self, name, functions, connections, gpu_functions=[],
-                     batching_functions=[], colocated=[]):
+                     batching_functions=[], colocated=[], signing_secret=None):
         '''
         Registers a new DAG with the system. This operation will fail if any of
         the functions provided cannot be identified in the system.
@@ -176,6 +176,9 @@ class CloudburstConnection():
         dag = Dag()
         dag.name = name
         dag.colocated.extend(colocated)
+
+        if signing_secret:
+            dag.signing_secret = signing_secret
 
         for function in functions:
             ref = dag.functions.add()
