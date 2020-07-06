@@ -456,7 +456,7 @@ class Handler(BaseHTTPRequestHandler):
                     logging.info(timestamp)
                     sig_basestring = 'v0:' + timestamp + ':' + body
                     logging.info(sig_basestring)
-                    my_signature = 'v0=' + hmac.new(secret, sig_basestring.encode(), hashlib.sha256).hexdigest()
+                    my_signature = 'v0=' + hmac.new(secret.encode(), sig_basestring.encode(), hashlib.sha256).hexdigest()
                     logging.info(my_signature)
                     slack_signature = self.headers['X-Slack-Signature']
                     logging.info(slack_signature)
