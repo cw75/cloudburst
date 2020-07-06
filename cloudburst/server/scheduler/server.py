@@ -449,9 +449,13 @@ class Handler(BaseHTTPRequestHandler):
                     secret = slack_credential[app_id]
                     logging.info(secret)
                     timestamp = self.headers['X-Slack-Request-Timestamp']
+                    logging.info(timestamp)
                     sig_basestring = 'v0:' + timestamp + ':' + raw_data
+                    logging.info(sig_basestring)
                     my_signature = 'v0=' + hmac.compute_hash_sha256(secret, sig_basestring).hexdigest()
+                    logging.info(my_signature)
                     slack_signature = self.headers['X-Slack-Signature']
+                    logging.info(slack_signature)
                     if hmac.compare(my_signature, slack_signature):
                         logging.info('authorized!')
                         event = json_obj['event']

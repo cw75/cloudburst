@@ -355,7 +355,7 @@ class CloudburstConnection():
         flist.ParseFromString(self.list_sock.recv())
         return flist.keys
 
-    def register_slack_bot(self, BotClass, bot_id, bot_token):
+    def register_slack_bot(self, BotClass, app_id, secret, bot_token):
         self.register((BotClass, (bot_token,)), 'bot')
-        self.register_dag(bot_id, ['bot'], [])
+        self.register_dag(app_id, ['bot'], [], signing_secret=secret)
         print('Endpoint: %s' % self.slack_addr)
