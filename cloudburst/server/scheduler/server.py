@@ -429,6 +429,8 @@ class Handler(BaseHTTPRequestHandler):
         logging.info('path is ' + self.path)
         if '/slack/events' in self.path:
             raw_data = self.rfile.read(int(self.headers['Content-Length']))
+            body = raw_data.decode('utf-8')
+            logging.info(body)
             json_obj = json.loads(raw_data)
             logging.info(json_obj)
 
@@ -450,7 +452,7 @@ class Handler(BaseHTTPRequestHandler):
                     logging.info(secret)
                     timestamp = self.headers['X-Slack-Request-Timestamp']
                     logging.info(timestamp)
-                    sig_basestring = 'v0:' + timestamp + ':' + raw_data
+                    sig_basestring = 'v0:' + timestamp + ':' + body
                     logging.info(sig_basestring)
                     my_signature = 'v0=' + hmac.compute_hash_sha256(secret, sig_basestring).hexdigest()
                     logging.info(my_signature)
