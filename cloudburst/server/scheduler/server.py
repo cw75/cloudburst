@@ -19,6 +19,8 @@ import time
 import uuid
 import zmq
 
+import hmac
+
 from anna.client import AnnaTcpClient
 from anna.zmq_util import SocketCache
 import requests
@@ -431,7 +433,8 @@ class Handler(BaseHTTPRequestHandler):
         logging.info('received POST')
         logging.info('path is ' + self.path)
         if '/slack/events' in self.path:
-            json_obj = json.loads(self.rfile.read(int(self.headers['Content-Length'])))
+            raw_data = self.rfile.read(int(self.headers['Content-Length']))
+            json_obj = json.loads(raw_data)
             logging.info(json_obj)
 
             if 'challenge' in json_obj:
@@ -444,14 +447,19 @@ class Handler(BaseHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(b'')
                 app_id = json_obj['api_app_id']
-                event = json_obj['event']
-                logging.info('sending to main loop')
-                self.server.pusher.send(cp.dumps([app_id, event]))
-                logging.info('sent to main loop')
-                #if 'channel' in event and 'user' in event and 'ts' in event and 'text' in event:
-                    #logging.info('sending to main loop')
-                    #self.server.pusher.send(cp.dumps([app_id, event]))
-                    #logging.info('sent to main loop')
+                secret = slack_credential[app_id]
+                timestamp = self.headers['X-Slack-Request-Timestamp']
+                sig_basestring = 'v0:' + timestamp + ':' + raw_data
+                my_signature = 'v0=' + hmac.compute_hash_sha256(secret, sig_basestring).hexdigest()
+                slack_signature = self.headers['X-Slack-Signature']
+                if hmac.compare(my_signature, slack_signature):
+                    logging.info('authorized!')
+                    event = json_obj['event']
+                    logging.info('sending to main loop')
+                    self.server.pusher.send(cp.dumps([app_id, event]))
+                    logging.info('sent to main loop')
+                else:
+                    logging.info('signature does not match!')
         else:
             self.send_response(400)
             self.end_headers()
