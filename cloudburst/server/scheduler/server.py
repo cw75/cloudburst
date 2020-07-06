@@ -442,19 +442,24 @@ class Handler(BaseHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(b'')
                 app_id = json_obj['api_app_id']
-                secret = slack_credential[app_id]
-                timestamp = self.headers['X-Slack-Request-Timestamp']
-                sig_basestring = 'v0:' + timestamp + ':' + raw_data
-                my_signature = 'v0=' + hmac.compute_hash_sha256(secret, sig_basestring).hexdigest()
-                slack_signature = self.headers['X-Slack-Signature']
-                if hmac.compare(my_signature, slack_signature):
-                    logging.info('authorized!')
-                    event = json_obj['event']
-                    logging.info('sending to main loop')
-                    self.server.pusher.send(cp.dumps([app_id, event]))
-                    logging.info('sent to main loop')
+                logging.info(app_id)
+                if app_id not in slack_credential:
+                    logging.error('app not registered!')
                 else:
-                    logging.info('signature does not match!')
+                    secret = slack_credential[app_id]
+                    logging.info(secret)
+                    timestamp = self.headers['X-Slack-Request-Timestamp']
+                    sig_basestring = 'v0:' + timestamp + ':' + raw_data
+                    my_signature = 'v0=' + hmac.compute_hash_sha256(secret, sig_basestring).hexdigest()
+                    slack_signature = self.headers['X-Slack-Signature']
+                    if hmac.compare(my_signature, slack_signature):
+                        logging.info('authorized!')
+                        event = json_obj['event']
+                        logging.info('sending to main loop')
+                        self.server.pusher.send(cp.dumps([app_id, event]))
+                        logging.info('sent to main loop')
+                    else:
+                        logging.info('signature does not match!')
         else:
             self.send_response(400)
             self.end_headers()
