@@ -66,7 +66,6 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 import threading
 import os
 
-from slack import WebClient
 import cloudpickle as cp
 
 METADATA_THRESHOLD = 5
@@ -74,10 +73,6 @@ REPORT_THRESHOLD = 5
 
 logging.basicConfig(filename='log_scheduler.txt', level=logging.INFO,
                     format='%(asctime)s %(message)s')
-
-logging.info(os.environ["BOT_TOKEN"])
-
-slack_web_client = WebClient(token=os.environ["BOT_TOKEN"])
 
 context = zmq.Context(1)
 
