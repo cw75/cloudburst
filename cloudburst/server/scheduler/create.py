@@ -41,16 +41,21 @@ def create_function(func_create_socket, kvs, consistency=NORMAL):
     logging.info('Creating function %s.' % (name))
 
     if consistency == NORMAL:
+        logging.info('Normal consistency')
         body = LWWPairLattice(sutils.generate_timestamp(0), func.body)
         res = kvs.put(name, body)
     else:
+        logging.info('Causal consistency')
         skcl = SingleKeyCausalLattice(sutils.DEFAULT_VC,
                                       SetLattice({func.body}))
         kvs.put(name, skcl)
 
+    logging.info('Got response from KVS')
     funcs = utils.get_func_list(kvs, '', fullname=True)
+    logging.info('Got function list')
     funcs.append(name)
     utils.put_func_list(kvs, funcs)
+    logging.info('Put function list')
 
     func_create_socket.send(sutils.ok_resp)
 
