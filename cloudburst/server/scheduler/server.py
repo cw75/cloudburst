@@ -489,5 +489,5 @@ if __name__ == '__main__':
     conf = sutils.load_conf(conf_file)
     sched_conf = conf['scheduler']
 
-    WebThread().start()
+    #WebThread().start()
     scheduler(conf['ip'], conf['mgmt_ip'], sched_conf['routing_address'])
