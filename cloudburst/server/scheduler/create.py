@@ -43,6 +43,7 @@ def create_function(func_create_socket, kvs, consistency=NORMAL):
     if consistency == NORMAL:
         logging.info('Normal consistency')
         body = LWWPairLattice(sutils.generate_timestamp(0), func.body)
+        logging.info('Body parsed')
         res = kvs.put(name, body)
     else:
         logging.info('Causal consistency')
