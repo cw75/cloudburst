@@ -49,6 +49,7 @@ def generate_error_response(schedule, client, fname):
 
 def retrieve_function(name, kvs, user_library, consistency=NORMAL):
     kvs_name = sutils.get_func_kvs_name(name)
+    print('retrieving function %s', kvs_name)
 
     if consistency == NORMAL:
         # This means that the function is stored in an LWWPairLattice.
@@ -73,12 +74,14 @@ def retrieve_function(name, kvs, user_library, consistency=NORMAL):
     # in the tuple is a class that we can initialize, and the second value is a
     # set of initialization args. Otherwise, we just return the retrieved
     # function.
+    print('type of result is %s', type(result))
+    print(result)
     if type(result) == tuple:
         cls = result[0]
         if type(result[1]) != tuple:
-            result[1] = (result[1],)
+            args = (result[1],)
 
-        args = (user_library,) + result[1]
+        args = (user_library,) + args
         obj = cls(*args)
         result = obj.run
 
