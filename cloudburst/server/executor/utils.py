@@ -79,9 +79,10 @@ def retrieve_function(name, kvs, user_library, consistency=NORMAL):
     if type(result) == tuple:
         cls = result[0]
         if type(result[1]) != tuple:
-            args = (result[1],)
+            args = (user_library,) + (result[1],)
+        else:
+            args = (user_library,) + result[1]
 
-        args = (user_library,) + args
         obj = cls(*args)
         result = obj.run
 
